@@ -4,7 +4,7 @@
 #' @description Converts samples data from national database (fishLine) to RDBES.
 #' Data model v. 1.19
 #'
-#' @param data_model Where to find the baseTypes with the data model
+#' @param path_to_data_model_baseTypes Where to find the baseTypes for the data model
 #' @param year Only takes a single year for now
 #' @param cruises Name of cruises in national database
 #' @param type only_mandatory | everything
@@ -21,19 +21,20 @@
 #'
 
 VD_fishline_2_rdbes <-
-  function(data_model = fields_sequence,
+  function(path_to_data_model_baseTypes = "Q:/mynd/RDB/create_RDBES_data/references",
            year = 2016,
            cruises = c("MON", "SEAS", "IN-HIRT"),
-           type = "only_mandatory")
+           type = "only_mandatory",
+           encrypter_suffix = "11084")
   {
 
 
     # Input for testing ----
-    data_model <-
-      readRDS("Q:/mynd/RDB/create_RDBES_data/references/BaseTypes.rds")
-    year = 2018
-    cruises = c("MON", "SEAS", "IN-HIRT")
-    type = "only_mandatory"
+
+    # path_to_data_model_baseTypes <- "Q:/mynd/RDB/create_RDBES_data/references"
+    # year <- 2018
+    # cruises <- c("MON", "SEAS", "IN-HIRT")
+    # type <- "only_mandatory"
 
     # Set-up ----
 
@@ -42,6 +43,8 @@ VD_fishline_2_rdbes <-
     library(dplyr)
     library(stringr)
     library(haven)
+
+    data_model <- readRDS(paste0(path_to_data_model_baseTypes, "/BaseTypes.rds"))
 
     vd_temp <- filter(data_model, substr(name, 1, 2) == "VD")
     vd_temp_t <- c("VDrecordType", t(vd_temp$name)[1:nrow(vd_temp)])
@@ -166,6 +169,7 @@ VD_fishline_2_rdbes <-
 
     vd <- left_join(vd, VDid)
     vd$VDrecordType <- "VD"
+
     vd$VDencryptedVesselCode <- as.character(vd$Vessel_identifier_Fid)
     vd$VDyear <- vd$year
     vd$VDcountry <- "DK"
@@ -200,6 +204,8 @@ VD_fishline_2_rdbes <-
                                     )
                                   ))
 
+    vd$VDlengthCategory[is.na(vd$VDlengthCategory)] <- "Unknown"
+
     test_VDlenCat <- distinct(vd, VDlength, VDlengthCategory)
 
     vd$VDpower <- round(vd$kw, digits = 0)
@@ -219,8 +225,15 @@ VD_fishline_2_rdbes <-
       }
     }
 
-    VD <- select(vd, one_of(vd_temp_t), tripId)
+    vd_ok <- subset(vd, !is.na(VDencryptedVesselCode))
 
-    return(list(VD, vd_temp, vd_temp_t))
+    vd_not_ok <- subset(vd, is.na(VDencryptedVesselCode))
+    vd_not_ok <- right_join(select(tr, year, cruise, trip, tripId), select(vd_not_ok, tripId, platform1))
+
+    VD <- select(vd_ok, one_of(vd_temp_t), tripId)
+
+    VD$VDencryptedVesselCode <- paste0(as.character(VD$VDencryptedVesselCode), encrypter_suffix)
+
+    return(list(VD, vd_temp, vd_temp_t, vd_not_ok))
 
   }
