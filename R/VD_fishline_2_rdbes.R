@@ -33,8 +33,9 @@ VD_fishline_2_rdbes <-
 
     # path_to_data_model_baseTypes <- "Q:/mynd/RDB/create_RDBES_data/references"
     # year <- 2018
-    # cruises <- c("MON", "SEAS", "IN-HIRT")
+    # cruises <- c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
     # type <- "only_mandatory"
+    # encrypter_suffix <- "11084"
 
     # Set-up ----
 
@@ -153,7 +154,8 @@ VD_fishline_2_rdbes <-
                kw,
                bt,
                brt,
-               ISO_3166_ices)
+               ISO_3166_ices,
+               samplingType)
 
     VDid <-
       distinct(combined_1,
@@ -171,10 +173,17 @@ VD_fishline_2_rdbes <-
     vd$VDrecordType <- "VD"
 
     vd$VDencryptedVesselCode <- as.character(vd$Vessel_identifier_Fid)
+
+    vd$VDencryptedVesselCode[is.na(vd$VDencryptedVesselCode)] <-
+      "DNK - Unknown vessel"
+
     vd$VDyear <- vd$year
     vd$VDcountry <- "DK"
     vd$VDhomePort <- vd$harbourEU
+
     vd$VDflagCountry <- vd$ISO_3166_ices
+    vd$VDflagCountry[is.na(vd$VDflagCountry) & vd$VDencryptedVesselCode == "DNK - Unknown vessel"] <- "DK"
+
     vd$VDlength <- round(vd$oal, digits = 0)
     vd$VDlengthCategory <- ifelse(vd$VDlength < 8,
                                   "<8",
@@ -227,12 +236,18 @@ VD_fishline_2_rdbes <-
 
     vd_ok <- subset(vd, !is.na(VDencryptedVesselCode))
 
-    vd_not_ok <- subset(vd, is.na(VDencryptedVesselCode))
-    vd_not_ok <- right_join(select(tr, year, cruise, trip, tripId), select(vd_not_ok, tripId, platform1))
+    vd_not_ok <- subset(vd, is.na(VDencryptedVesselCode) | VDencryptedVesselCode == "DNK - Unknown vessel")
+
+    vd_not_ok <-
+      right_join(
+        select(tr, year, cruise, trip, tripId, samplingType),
+        select(vd_not_ok, tripId, platform1, VDencryptedVesselCode)
+      )
 
     VD <- select(vd_ok, one_of(vd_temp_t), tripId)
 
-    VD$VDencryptedVesselCode <- paste0(as.character(VD$VDencryptedVesselCode), encrypter_suffix)
+    VD$VDencryptedVesselCode[VD$VDencryptedVesselCode != "DNK - Unknown vessel"] <-
+      paste0(VD$VDencryptedVesselCode[VD$VDencryptedVesselCode != "DNK - Unknown vessel"], encrypter_suffix)
 
     return(list(VD, vd_temp, vd_temp_t, vd_not_ok))
 
