@@ -143,41 +143,42 @@ VS_fishline_2_rdbes <-
                trip,
                VDencryptedVesselCode,
                Vessel_identifier_fid,
-               year)
+               year,
+               dateEnd)
 
     vs$VSid <- vs$tripId
-    vs$VSrecordType <- "VD"
+    vs$VSrecordType <- "VS"
 
     vs$VSencryptedVesselCode <- vs$VDencryptedVesselCode
 
-    vs$VSsequenceNumber <- NA  #To be coded manual - depends on design
-    vs$VSstratification <- NA  #To be coded manual - depends on design
-    vs$VSstratumName <- NA     #To be coded manual - depends on design
-    vs$VSclustering <- NA      #To be coded manual - depends on design
-    vs$VSclusterName <- NA     #To be coded manual - depends on design
+    vs$VSsequenceNumber <- NA   #To be coded manual - depends on design
+    vs$VSstratification <- "N"  #To be coded manual - depends on design
+    vs$VSstratumName <- "U"     #To be coded manual - depends on design
+    vs$VSclustering <- "N"      #To be coded manual - depends on design
+    vs$VSclusterName <- "No"     #To be coded manual - depends on design
 
     vs$VSsampler[vs$cruise %in% c("MON", "SEAS")] <- "Observer"
     vs$VSsampler[substr(vs$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM")] <-
       "Self-Sampling"
 
-    vs$VSnumberTotal <- NA      #To be coded manual - depends on design
-    vs$VSnumberSampled <- NA    #To be coded manual - depends on design
-    vs$VSselectionProb <- NA    #To be coded manual - depends on design
-    vs$VSinclusionProb <- NA    #To be coded manual - depends on design
-    vs$VSselectionMethod <- NA  #To be coded manual - depends on design
+    vs$VSnumberTotal <- ""      #To be coded manual - depends on design
+    vs$VSnumberSampled <- ""    #To be coded manual - depends on design
+    vs$VSselectionProb <- ""    #To be coded manual - depends on design
+    vs$VSinclusionProb <- ""    #To be coded manual - depends on design
+    vs$VSselectionMethod <- "NotApplicable"  #To be coded manual - depends on design
 
     vs$VSunitName <- vs$Vessel_identifier_fid
 
-    vs$VSselectionMethodCluster <- NA  #To be coded manual - depends on design
-    vs$VSnumberTotalClusters <- NA     #To be coded manual - depends on design
-    vs$VSnumberSampledClusters <- NA   #To be coded manual - depends on design
-    vs$VSselectionProbCluster <- NA    #To be coded manual - depends on design
-    vs$VSinclusionProbCluster <- NA       #To be coded manual - depends on design
+    vs$VSselectionMethodCluster <- ""  #To be coded manual - depends on design
+    vs$VSnumberTotalClusters <- ""     #To be coded manual - depends on design
+    vs$VSnumberSampledClusters <- ""   #To be coded manual - depends on design
+    vs$VSselectionProbCluster <- ""    #To be coded manual - depends on design
+    vs$VSinclusionProbCluster <- ""       #To be coded manual - depends on design
 
     vs$VSsampled <- "Y"                   #For now only including Y - N requires manual coding
     # Should be 0, but that is not possible at the moment
     # vs$VSsampled[vs$cruise %in% c("MON", "SEAS") & is.na(vs$numberOfHaulsOrSets)] <- 0
-    vs$VSreasonNotSampled <- NA           #Reasoning requires manual coding
+    vs$VSreasonNotSampled <- ""           #Reasoning requires manual coding
 
     if (type == "only_mandatory") {
       vs_temp_optional <-
@@ -186,13 +187,13 @@ VS_fishline_2_rdbes <-
         factor(t(vs_temp_optional$name)[1:nrow(vs_temp_optional)])
 
       for (i in levels(vs_temp_optional_t)) {
-        eval(parse(text = paste0("vs$", i, " <- NA")))
+        eval(parse(text = paste0("vs$", i, " <- ''")))
 
       }
     }
 
-    VS <- select(vs, one_of(vs_temp_t), tripId, VSid)
+    VS <- select(vs, one_of(vs_temp_t), tripId, VSid, dateEnd, year)
 
-    return(list(FT, ft_temp, ft_temp_t))
+    return(list(VS, vs_temp, vs_temp_t))
 
   }
