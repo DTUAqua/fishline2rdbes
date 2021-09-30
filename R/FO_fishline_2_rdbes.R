@@ -1,5 +1,5 @@
 
-#' FishLine 2 RDBES, Fishing trip (FT)
+#' FishLine 2 RDBES, Fishing operation (FO)
 #'
 #' @description Converts samples data from national database (fishLine) to RDBES.
 #' Data model v. 1.19
@@ -31,10 +31,10 @@ FO_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    data_model_baseTypes_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    years <- c(2018:2020)
-    cruises <- c("MON",  "SEAS")
-    type <- "everything"
+    # data_model_baseTypes_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    # years <- c(2018:2020)
+    # cruises <- c("MON",  "SEAS")
+    # type <- "everything"
 
     # Set-up ----
 
