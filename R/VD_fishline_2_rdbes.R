@@ -95,7 +95,7 @@ VD_fishline_2_rdbes <-
 
     # Add needed stuff ----
 
-    # Vessel_identifier_Fid & Homeport
+    # Vessel_identifier_efid & Homeport
     # Depends on country
 
     vessel_dnk <- subset(tr, nationalityPlatform1 == "DNK")
