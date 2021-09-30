@@ -20,7 +20,7 @@
 #'
 #'
 
-FO_fishline_2_rdbes <-
+LE_fishline_2_rdbes <-
   function(data_model_baseTypes_path = "Q:/mynd/RDB/create_RDBES_data/references",
            years = 2016,
            cruises = c("MON", "SEAS", "IN-HIRT"),
