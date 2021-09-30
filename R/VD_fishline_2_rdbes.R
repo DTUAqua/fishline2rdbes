@@ -5,7 +5,7 @@
 #' Data model v. 1.19
 #'
 #' @param path_to_data_model_baseTypes Where to find the baseTypes for the data model
-#' @param year Only takes a single year for now
+#' @param years Years needed
 #' @param cruises Name of cruises in national database
 #' @param type only_mandatory | everything
 #'
@@ -21,8 +21,8 @@
 #'
 
 VD_fishline_2_rdbes <-
-  function(path_to_data_model_baseTypes = "Q:/mynd/RDB/create_RDBES_data/references",
-           year = 2016,
+  function(data_model_baseTypes_path = "Q:/mynd/RDB/create_RDBES_data/references",
+           years = 2016,
            cruises = c("MON", "SEAS", "IN-HIRT"),
            type = "only_mandatory",
            encrypter_suffix = "11084")
@@ -31,7 +31,7 @@ VD_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    # path_to_data_model_baseTypes <- "Q:/mynd/RDB/create_RDBES_data/references"
+    # data_model_baseTypes_path <- "Q:/mynd/RDB/create_RDBES_data/references"
     # year <- 2018
     # cruises <- c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
     # type <- "only_mandatory"
@@ -45,7 +45,7 @@ VD_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    data_model <- readRDS(paste0(path_to_data_model_baseTypes, "/BaseTypes.rds"))
+    data_model <- readRDS(paste0(data_model_baseTypes_path, "/BaseTypes.rds"))
 
     vd_temp <- filter(data_model, substr(name, 1, 2) == "VD")
     vd_temp_t <- c("VDrecordType", t(vd_temp$name)[1:nrow(vd_temp)])
@@ -58,7 +58,7 @@ VD_fishline_2_rdbes <-
       channel,
       paste(
         "select * FROM dbo.Trip
-         WHERE (Trip.year = ", year , ")
+         WHERE (Trip.year between ", min(years), " and ", max(years) , ")
                 and Trip.cruise in ('", paste(cruises, collapse = "','"),
         "')",
         sep = ""
