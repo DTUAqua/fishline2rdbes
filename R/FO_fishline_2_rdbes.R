@@ -33,12 +33,11 @@ FO_fishline_2_rdbes <-
 
     data_model_baseTypes_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
     years <- c(2018:2020)
-    cruises <- c("MON",  "IN-LYNG")
+    cruises <- c("MON",  "SEAS")
     type <- "everything"
 
     # Set-up ----
 
-    # agg_level <- "H"
     library(sqldf)
     library(dplyr)
     library(stringr)
@@ -99,8 +98,6 @@ FO_fishline_2_rdbes <-
     fo$FOsampler[substr(fo$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM")] <-
       "Self-Sampling"
 
-    fo$FOaggregationLevel <- agg_level
-
     fo$FOvalidity <- fo$gearQuality
     fo$FOvalidity [is.na(fo$FOvalidity)] <- "I"
 
@@ -123,47 +120,52 @@ FO_fishline_2_rdbes <-
     fo_h <- subset(fo, tripType == "SØS")
 
     # Haul level
-    fo_t$FOaggregationLevel <- "H"
+    if (nrow(fo_h > 0)) {
+      fo_h$FOaggregationLevel <- "H"
 
-    fo_h$FOstartDate <- as.character(as.Date(fo_h$dateGearStart))
-    fo_h$FOstartTime <-
-      as.character(strftime(fo_h$dateGearStart, format = "%H:%M"))
-    fo_h$FOendDate <- as.Date(fo_h$dateGearEnd)
-    fo_h$FOendTime <- as.character(strftime(fo_h$dateGearEnd, format = "%H:%M"))
+      fo_h$FOstartDate <- as.character(as.Date(fo_h$dateGearStart))
+      fo_h$FOstartTime <-
+        as.character(strftime(fo_h$dateGearStart, format = "%H:%M"))
+      fo_h$FOendDate <- as.Date(fo_h$dateGearEnd)
+      fo_h$FOendTime <- as.character(strftime(fo_h$dateGearEnd, format = "%H:%M"))
 
-    fo_h$FOduration[fo_h$cruise %in% c("MON", "SEAS")] <-
-      as.character(round(as.numeric(fo_h$fishingtime), digits = 0))
+      fo_h$FOduration[fo_h$cruise %in% c("MON", "SEAS")] <-
+        as.character(round(as.numeric(fo_h$fishingtime), digits = 0))
 
-    fo_h$FOdurationSource[fo_h$cruise %in% c("MON", "SEAS")] <-
-      "Crew"
-    fo_h$FOdurationSource[substr(fo_h$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM")] <-
-      "Data"
+      fo_h$FOdurationSource[fo_h$cruise %in% c("MON", "SEAS")] <-
+        "Crew"
+      fo_h$FOdurationSource[substr(fo_h$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM")] <-
+        "Data"
 
-    fo_h$FOstartLat <- as.character(round(fo_h$latPosStartDec, digits = 5))
-    fo_h$FOstartLon <- as.character(round(fo_h$lonPosStartDec, digits = 5))
-    fo_h$FOstopLat <- as.character(round(fo_h$latPosEndDec, digits = 5))
-    fo_h$FOstopLon <- as.character(round(fo_h$lonPosEndDec, digits = 5))
+      fo_h$FOstartLat <- as.character(round(fo_h$latPosStartDec, digits = 5))
+      fo_h$FOstartLon <- as.character(round(fo_h$lonPosStartDec, digits = 5))
+      fo_h$FOstopLat <- as.character(round(fo_h$latPosEndDec, digits = 5))
+      fo_h$FOstopLon <- as.character(round(fo_h$lonPosEndDec, digits = 5))
 
-    fo_h$FOfishingDepth <- as.character(round(fo_h$depthAveGear, digits = 0))
-    fo_h$FOfishingDepth[is.na(fo_h$FOfishingDepth)] <- ""
+      fo_h$FOfishingDepth <- as.character(round(fo_h$depthAveGear, digits = 0))
+      fo_h$FOfishingDepth[is.na(fo_h$FOfishingDepth)] <- ""
+    }
 
     # Trip level
-    fo_t$FOaggregationLevel <- "T"
+    if (nrow(fo_t > 0)) {
+      fo_t$FOaggregationLevel <- "T"
 
-    fo_t$FOstartDate <- ""
-    fo_t$FOstartTime <- ""
-    fo_t$FOendDate <- as.Date(fo_t$dateGearEnd)
-    fo_t$FOendTime <- ""
+      fo_t$FOstartDate <- ""
+      fo_t$FOstartTime <- ""
+      fo_t$FOendDate <- as.Date(fo_t$dateGearEnd)
+      fo_t$FOendTime <- ""
 
-    fo_t$FOduration <- ""
-    fo_t$FOdurationSource <- "Data"
+      fo_t$FOduration <- ""
+      fo_t$FOdurationSource <- "Data"
 
-    fo_t$FOstartLat <- ""
-    fo_t$FOstartLon <- ""
-    fo_t$FOstopLat <- ""
-    fo_t$FOstopLon <- ""
+      fo_t$FOstartLat <- ""
+      fo_t$FOstartLon <- ""
+      fo_t$FOstopLat <- ""
+      fo_t$FOstopLon <- ""
 
-    fo_t$FOfishingDepth <- ""
+      fo_t$FOfishingDepth <- ""
+    }
+
 
     fo <- bind_rows(fo_h, fo_t)
 
