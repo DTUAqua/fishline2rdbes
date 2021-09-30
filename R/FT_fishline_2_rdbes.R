@@ -134,15 +134,15 @@ FT_fishline_2_rdbes <-
                numberOfHaulsOrSets)
 
     ft$FTid <- ft$tripId
-    ft$FTrecordType <- "VD"
+    ft$FTrecordType <- "FT"
 
     ft$FTencryptedVesselCode <- ft$VDencryptedVesselCode
 
     ft$FTsequenceNumber <- NA  #To be coded manual - depends on design
-    ft$FTstratification <- NA  #To be coded manual - depends on design
-    ft$FTstratumName <- NA     #To be coded manual - depends on design
-    ft$FTclustering <- NA         #To be coded manual - depends on design
-    ft$FTclusterName <- NA     #To be coded manual - depends on design
+    ft$FTstratification <- "N"  #To be coded manual - depends on design
+    ft$FTstratumName <- "U"     #To be coded manual - depends on design
+    ft$FTclustering <- "N"         #To be coded manual - depends on design
+    ft$FTclusterName <- "No"     #To be coded manual - depends on design
 
     ft$FTsampler[ft$cruise %in% c("MON", "SEAS")] <- "Observer"
     ft$FTsampler[substr(ft$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM")] <-
@@ -169,24 +169,24 @@ FT_fishline_2_rdbes <-
     ft$FTarrivalDate <- as.Date(ft$dateEnd)
     ft$FTarrivalTime <- strftime(ft$dateEnd, format = "%H:%M")
 
-    ft$FTnumberTotal <- NA      #To be coded manual - depends on design
-    ft$FTnumberSampled <- NA    #To be coded manual - depends on design
-    ft$FTselectionProb <- NA    #To be coded manual - depends on design
-    ft$FTinclusionProb <- NA    #To be coded manual - depends on design
-    ft$FTselectionMethod <- NA  #To be coded manual - depends on design
+    ft$FTnumberTotal <- ""      #To be coded manual - depends on design
+    ft$FTnumberSampled <- ""    #To be coded manual - depends on design
+    ft$FTselectionProb <- ""    #To be coded manual - depends on design
+    ft$FTinclusionProb <- ""    #To be coded manual - depends on design
+    ft$FTselectionMethod <- "NotApplicable"  #To be coded manual - depends on design
 
     ft$FTunitName <- paste(ft$cruise, ft$trip, sep = "-")
 
-    ft$FTselectionMethodCluster <- NA  #To be coded manual - depends on design
-    ft$FTnumberTotalClusters <- NA     #To be coded manual - depends on design
-    ft$FTnumberSampledClusters <- NA   #To be coded manual - depends on design
-    ft$FTselectionProbCluster <- NA    #To be coded manual - depends on design
-    ft$FTinclusionProbCluster <- NA       #To be coded manual - depends on design
+    ft$FTselectionMethodCluster <- ""  #To be coded manual - depends on design
+    ft$FTnumberTotalClusters <- ""     #To be coded manual - depends on design
+    ft$FTnumberSampledClusters <- ""   #To be coded manual - depends on design
+    ft$FTselectionProbCluster <- ""    #To be coded manual - depends on design
+    ft$FTinclusionProbCluster <- ""       #To be coded manual - depends on design
 
     ft$FTsampled <- "Y"                   #For now only including Y - N requires manual coding
     # Should be 0, but that is not possible at the moment
     # ft$FTsampled[ft$cruise %in% c("MON", "SEAS") & is.na(ft$numberOfHaulsOrSets)] <- 0
-    ft$FTreasonNotSampled <- NA           #Reasoning requires manual coding
+    ft$FTreasonNotSampled <- ""           #Reasoning requires manual coding
 
     if (type == "only_mandatory") {
       ft_temp_optional <-
@@ -195,12 +195,12 @@ FT_fishline_2_rdbes <-
         factor(t(ft_temp_optional$name)[1:nrow(ft_temp_optional)])
 
       for (i in levels(ft_temp_optional_t)) {
-        eval(parse(text = paste0("ft$", i, " <- NA")))
+        eval(parse(text = paste0("ft$", i, " <- ''")))
 
       }
     }
 
-    VD <- select(ft, one_of(ft_temp_t), tripId, FTid)
+    FT <- select(ft, one_of(ft_temp_t), tripId, FTid, year, dateEnd)
 
     return(list(FT, ft_temp, ft_temp_t))
 
