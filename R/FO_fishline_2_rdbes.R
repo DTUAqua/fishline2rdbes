@@ -39,6 +39,7 @@ FO_fishline_2_rdbes <-
     # Set-up ----
 
     library(sqldf)
+    library(RODBC)
     library(dplyr)
     library(stringr)
     library(haven)
@@ -95,7 +96,7 @@ FO_fishline_2_rdbes <-
     fo$FOclusterName <- "No"     #To be coded manual - depends on design
 
     fo$FOsampler[fo$cruise %in% c("MON", "SEAS")] <- "Observer"
-    fo$FOsampler[substr(fo$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM")] <-
+    fo$FOsampler[substr(fo$cruise, 1, 3) %in% c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM")] <-
       "Self-Sampling"
 
     fo$FOvalidity <- fo$gearQuality
@@ -106,7 +107,7 @@ FO_fishline_2_rdbes <-
     fo$FOcatchReg[fo$cruise %in% c("MON", "SEAS") & fo$catchRegistration == "LAN" & fo$speciesRegistration == "ALL"] <- "Lan"
     fo$FOcatchReg[fo$cruise %in% c("MON", "SEAS") & fo$catchRegistration == "NON" | fo$speciesRegistration != "ALL"] <- "None"
     fo$FOcatchReg[fo$cruise %in% c("MON", "SEAS") & is.na(fo$catchRegistration) | is.na(fo$speciesRegistration)] <- "None"
-    fo$FOcatchReg[substr(fo$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM")] <- "Lan"
+    fo$FOcatchReg[substr(fo$cruise, 1, 3) %in% c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM")] <- "Lan"
 
     test <-
       summarise(
@@ -134,7 +135,7 @@ FO_fishline_2_rdbes <-
 
       fo_h$FOdurationSource[fo_h$cruise %in% c("MON", "SEAS")] <-
         "Crew"
-      fo_h$FOdurationSource[substr(fo_h$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM")] <-
+      fo_h$FOdurationSource[substr(fo_h$cruise, 1, 3) %in% c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM")] <-
         "Data"
 
       fo_h$FOstartLat <- as.character(round(fo_h$latPosStartDec, digits = 5))
@@ -250,7 +251,7 @@ FO_fishline_2_rdbes <-
       }
     }
 
-    FO <- select(fo, one_of(fo_temp_t), tripId, sampleId, FOid, year)
+    FO <- select(fo, one_of(fo_temp_t), tripId, sampleId, FOid, year, cruise, trip)
 
     return(list(FO, fo_temp, fo_temp_t))
 

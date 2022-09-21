@@ -192,7 +192,7 @@ VS_fishline_2_rdbes <-
       }
     }
 
-    VS <- select(vs, one_of(vs_temp_t), tripId, VSid, dateEnd, year)
+    VS <- select(vs, one_of(vs_temp_t), tripId, VSid, dateEnd, year, cruise, trip)
 
     return(list(VS, vs_temp, vs_temp_t))
 

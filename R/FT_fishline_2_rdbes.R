@@ -147,16 +147,19 @@ FT_fishline_2_rdbes <-
     ft$FTsampler[ft$cruise %in% c("MON", "SEAS")] <- "Observer"
     ft$FTsampler[substr(ft$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM")] <-
       "Self-Sampling"
+    ft$FTsampler[is.na(ft$FTsampler)] <- "Observer"
 
     ft$FTsamplingType[ft$cruise %in% c("MON", "SEAS")] <- "At-Sea"
     ft$FTsamplingType[substr(ft$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM")] <-
       "At-Sea"
+    ft$FTsamplingType[is.na(ft$FTsamplingType)] <- "On-Shore"
 
     unique(ft[c("cruise", "FTsampler", "FTsamplingType")])
 
     #Number of valid hauls - only M for Observer at-sea, but would be nice to include for self-sampling
     ft$FTnumberOfHaulsOrSets <- ft$numberOfHaulsOrSets
     ft$FTnumberOfHaulsOrSets[!(ft$cruise %in% c("MON", "SEAS"))] <- ""
+    ft$FTnumberOfHaulsOrSets[ft$cruise %in% c("MON", "SEAS") & is.na(ft$numberOfHaulsOrSets)] <- 0
 
 
     ft$FTdepartureLocation <- "DK999" # Don't have this in FishLine - need to get from DFAD - later!
@@ -183,10 +186,10 @@ FT_fishline_2_rdbes <-
     ft$FTselectionProbCluster <- ""    #To be coded manual - depends on design
     ft$FTinclusionProbCluster <- ""       #To be coded manual - depends on design
 
-    ft$FTsampled <- "Y"                   #For now only including Y - N requires manual coding
-    # Should be 0, but that is not possible at the moment
-    # ft$FTsampled[ft$cruise %in% c("MON", "SEAS") & is.na(ft$numberOfHaulsOrSets)] <- 0
-    ft$FTreasonNotSampled <- ""           #Reasoning requires manual coding
+    ft$FTsampled <- "Y"
+    # ft$FTsampled[ft$numberOfHaulsOrSets == "0"] <- "N"
+    ft$FTreasonNotSampled <- ""
+    # ft$FTreasonNotSampled[ft$numberOfHaulsOrSets == "0"] <- "Other"
 
     if (type == "only_mandatory") {
       ft_temp_optional <-

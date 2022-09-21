@@ -8,7 +8,6 @@
 #' @param years Years needed
 #' @param cruises Name of cruises in national database
 #' @param type only_mandatory | everything
-#' @param prefix_encrypter Add soemthing that makes sure that each run is unique. Just until we get a stable encryption
 #'
 #' @author Kirsten Birch Håkansson, DTU Aqua
 #'
@@ -26,7 +25,7 @@ VD_fishline_2_rdbes <-
            years = 2016,
            cruises = c("MON", "SEAS", "IN-HIRT"),
            type = "only_mandatory",
-           prefix_encrypter = "11084")
+           encrypter_suffix = "11084")
   {
 
 
@@ -36,7 +35,7 @@ VD_fishline_2_rdbes <-
     # year <- 2018
     # cruises <- c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
     # type <- "only_mandatory"
-    # prefix_encrypter <- "11084"
+    # encrypter_suffix <- "11084"
 
     # Set-up ----
 
@@ -83,7 +82,7 @@ VD_fishline_2_rdbes <-
       )
     close(channel)
 
-    fl_ftj_id$Vessel_identifier_efid <- fl_ftj_id$L_platformId
+    fl_ftj_id$Vessel_identifier_Fid <- fl_ftj_id$L_platformId
 
     # Get country code reference
 
@@ -95,7 +94,7 @@ VD_fishline_2_rdbes <-
 
     # Add needed stuff ----
 
-    # Vessel_identifier_efid & Homeport
+    # Vessel_identifier_Fid & Homeport
     # Depends on country
 
     vessel_dnk <- subset(tr, nationalityPlatform1 == "DNK")
@@ -112,7 +111,7 @@ VD_fishline_2_rdbes <-
     ftj_id_1 <-
       select(ftj_id,
              fid,
-             Vessel_identifier_efid,
+             Vessel_identifier_Fid,
              vstart,
              vslut,
              oal,
@@ -149,7 +148,7 @@ VD_fishline_2_rdbes <-
                tripId,
                platform1,
                year,
-               Vessel_identifier_efid,
+               Vessel_identifier_Fid,
                oal,
                harbourEU,
                kw,
@@ -161,7 +160,7 @@ VD_fishline_2_rdbes <-
     VDid <-
       distinct(combined_1,
                platform1,
-               Vessel_identifier_efid,
+               Vessel_identifier_Fid,
                oal,
                harbourEU,
                kw,
@@ -173,7 +172,7 @@ VD_fishline_2_rdbes <-
     vd <- left_join(vd, VDid)
     vd$VDrecordType <- "VD"
 
-    vd$VDencryptedVesselCode <- as.character(vd$Vessel_identifier_efid)
+    vd$VDencryptedVesselCode <- as.character(vd$Vessel_identifier_Fid)
 
     vd$VDencryptedVesselCode[is.na(vd$VDencryptedVesselCode)] <-
       "DNK - Unknown vessel"
@@ -248,7 +247,7 @@ VD_fishline_2_rdbes <-
     VD <- select(vd_ok, one_of(vd_temp_t), tripId)
 
     VD$VDencryptedVesselCode[VD$VDencryptedVesselCode != "DNK - Unknown vessel"] <-
-      paste0(prefix_encrypter, VD$VDencryptedVesselCode[VD$VDencryptedVesselCode != "DNK - Unknown vessel"])
+      paste0(VD$VDencryptedVesselCode[VD$VDencryptedVesselCode != "DNK - Unknown vessel"], encrypter_suffix)
 
     return(list(VD, vd_temp, vd_temp_t, vd_not_ok))
 

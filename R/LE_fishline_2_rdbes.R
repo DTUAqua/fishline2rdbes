@@ -134,7 +134,7 @@ LE_fishline_2_rdbes <-
     le$LEstratification <- "N"  #To be coded manual - depends on design
     le$LEstratumName <- "U"     #To be coded manual - depends on design
     le$LEclustering <- "N"         #To be coded manual - depends on design
-    le$LEclusterName <- "No"     #To be coded manual - depends on design
+    le$LEclusterName <- "U"     #To be coded manual - depends on design
 
     le$LEsampler <-  "Observer" # That is not completely TRUE
 

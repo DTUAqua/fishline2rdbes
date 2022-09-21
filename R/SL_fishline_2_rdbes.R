@@ -18,71 +18,128 @@
 #'
 
 SL_fishline_2_rdbes <-
-  function(data_model = fields_sequence,
-           year = 2016,
-           years = c(2016),
+  function(data_model_baseTypes_path = "Q:/mynd/RDB/create_RDBES_data/references",
+           years = 2016,
+           basis_years = c(2016:2020),
            cruises = c("MON", "SEAS"),
+           catch_fractions = c("Dis", "Lan"),
+           specieslist_name = "DNK_AtSea_Observer_all_species_same_Dis_Lan",
+           species_to_add = c(148776, 137117),
            type = "only_mandatory")
   {
+    # Input for testing ----
 
-  library(RODBC)
-  library(sqldf)
-  library(dplyr)
-  library(stringr)
-  library(haven)
-
-  sl_temp <- filter(data_model, substr(name, 1, 2) == "SL")
-  sl_temp_t <- c("SLrecordType",t(sl_temp$name)[1:nrow(sl_temp)])
-
-  # Get data from FishLine
-  channel <- odbcConnect("FishLineDW")
-  sl <- sqlQuery(channel, paste("select * FROM dbo.SpeciesList
-                  WHERE (year between ", min(years) , " and ", max(years), ")
-                                 and cruise in ('", paste(cruises, collapse = "','"), "')", sep = ""))
-  close(channel)
-
-  channel2 <- odbcConnect("FishLine")
-  art <- sqlQuery(channel2, paste("select * FROM dbo.L_species"))
-  close(channel2)
+    # data_model_baseTypes_path <-
+    #   "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    # years <- c(2018:2020)
+    # basis_years <-  c(2016:2020)
+    # cruises <- c("MON",  "SEAS")
+    # catch_fractions <- c("Dis", "Lan")
+    # specieslist_name <- "DNK_AtSea_Observer_all_species_Dis_Lan"
+    # species_to_add <- c(148776, 137117)
+    # type <- "everything"
 
 
-  #Selecting species per catchcategory and region
+    library(RODBC)
+    library(sqldf)
+    library(dplyr)
+    library(stringr)
+    library(haven)
 
-  sl <- left_join(sl, art)
+    data_model <-
+      readRDS(paste0(data_model_baseTypes_path, "/BaseTypes.rds"))
 
-  no_latin <- distinct(filter(sl, is.na(latin)), speciesCode, dkName)
+    sl_temp <- filter(data_model, substr(name, 1, 2) == "SL")
+    sl_temp_t <- c("SLrecordType", t(sl_temp$name)[1:nrow(sl_temp)])
 
-  #Delete all none species
-  sl <- filter(sl, !(is.na(latin)) & !(speciesCode %in% c("INV")))
+    # Get data from FishLine
+    channel <- odbcConnect("FishLineDW")
+    sl <- sqlQuery(
+      channel,
+      paste(
+        "select speciesCode FROM dbo.SpeciesList
+                  WHERE (year between ",
+        min(basis_years) ,
+        " and ",
+        max(basis_years),
+        ")
+                                 and cruise in ('",
+        paste(cruises, collapse = "','"),
+        "')",
+        sep = ""
+      )
+    )
+    close(channel)
 
-  # Code SL table
+    channel2 <- odbcConnect("FishLine")
+    art <-
+      sqlQuery(channel2,
+               paste("select speciesCode, aphiaID, dkName, latin FROM dbo.L_species"))
+    close(channel2)
 
-  sl$SLrecordType <- "SL"
-  sl$SLcountry = "DK"
-  sl$SLinstitute <- "2195"
-  sl$SLspeciesListName <- paste("All species")
-  sl$SLyear <- year
-  sl$SLcatchFraction <- "Catch"
-  sl$SLcommercialTaxon <- ""
-  sl$SLspeciesCode <- sl$aphiaID
+    #Selecting species per catchcategory and region
 
-  id <- distinct(ungroup(sl), SLspeciesListName)
-  sl$SLid <- row.names(id)
+    sl <- left_join(sl, art)
 
-  if (type == "only_mandatory") {
+    no_latin <-
+      distinct(filter(sl, is.na(latin)), speciesCode, dkName)
 
-    sl_temp_optional <- filter(data_model, substr(name, 1, 2) == "SL" & min == 0)
-    sl_temp_optional_t <- factor(t(sl_temp_optional$name)[1:nrow(sl_temp_optional)])
+    #Delete all none species
+    sl <- filter(sl, !(is.na(latin)) & !(speciesCode %in% c("INV")) & !is.na(aphiaID))
 
-    for (i in levels(sl_temp_optional_t)) {
+    # Add species
+    if (length(species_to_add) > 0) {
+      add_species <- data.frame(aphiaID = species_to_add)
 
-      eval(parse(text = paste0("sl$", i, " <- NA")))
-
+      sl <- bind_rows(sl, add_species)
     }
-  }
 
-  SL <- select(sl, one_of(sl_temp_t), SLid)
+    # Code SL table
 
-  return(list(SL, sl_temp, sl_temp_t))
+    sl$SLrecordType <- "SL"
+    sl$SLcountry = "DK"
+    sl$SLinstitute <- "2195"
+    sl$SLspeciesListName <- specieslist_name
+    sl$SLcommercialTaxon <- sl$aphiaID
+    sl$SLspeciesCode <- sl$aphiaID
+
+    sl$SLcatchFraction <- ""
+
+    if (length(catch_fractions) == 1) {
+      sl$SLcatchFraction <- catch_fractions
+
+    } else if (length(catch_fractions) == 2) {
+      sl_1 <- mutate(sl, SLcatchFraction = catch_fractions[1])
+      sl_2 <- mutate(sl, SLcatchFraction = catch_fractions[2])
+
+      sl <- rbind(sl_1, sl_2)
+
+    } else {
+      print("Too many catch_fractions")
+    }
+
+    SLyear <- rep(years, nrow(sl))
+
+    sl <-
+      data.frame(sl[rep(seq_len(nrow(sl)), each = 3),], SLyear)
+
+    id <- distinct(ungroup(sl), SLspeciesListName)
+    sl$SLid <- row.names(id)
+
+    if (type == "only_mandatory") {
+      sl_temp_optional <-
+        filter(data_model, substr(name, 1, 2) == "SL" & min == 0)
+      sl_temp_optional_t <-
+        factor(t(sl_temp_optional$name)[1:nrow(sl_temp_optional)])
+
+      for (i in levels(sl_temp_optional_t)) {
+        eval(parse(text = paste0("sl$", i, " <- NA")))
+
+      }
+    }
+
+    SL <- distinct(select(ungroup(sl), one_of(sl_temp_t), SLid))
+
+    return(list(SL, sl_temp, sl_temp_t))
 
   }
