@@ -16,8 +16,7 @@
 #'
 #'
 #' @examples
-#'
-#'
+
 
 
 FO_fishline_2_rdbes <-
