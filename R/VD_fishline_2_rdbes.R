@@ -2,7 +2,7 @@
 #' FishLine 2 RDBES, Vessel details (VD)
 #'
 #' @description Converts samples data from national database (fishLine) to RDBES.
-#' Data model v. 1.19
+#' Data model v. 1.19.13
 #'
 #' @param path_to_data_model_baseTypes Where to find the baseTypes for the data model
 #' @param years Years needed
@@ -184,7 +184,7 @@ VD_fishline_2_rdbes <-
     vd$VDflagCountry <- vd$ISO_3166_ices
     vd$VDflagCountry[is.na(vd$VDflagCountry) & vd$VDencryptedVesselCode == "DNK - Unknown vessel"] <- "DK"
 
-    vd$VDlength <- round(vd$oal, digits = 0)
+    vd$VDlength <- round(vd$oal, digits = 2)
     vd$VDlengthCategory <- ifelse(vd$VDlength < 8,
                                   "<8",
                                   ifelse(
