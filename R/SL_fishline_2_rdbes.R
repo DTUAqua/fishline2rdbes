@@ -18,23 +18,23 @@
 #'
 
 SL_fishline_2_rdbes <-
-  function(data_model_baseTypes_path = "Q:/mynd/RDB/create_RDBES_data/references",
+  function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
+           sampling_scheme = "DNK_Market_Sampling",
            years = 2016,
            basis_years = c(2016:2020),
-           cruises = c("MON", "SEAS"),
            catch_fractions = c("Dis", "Lan"),
            specieslist_name = "DNK_AtSea_Observer_all_species_same_Dis_Lan",
            species_to_add = c(148776, 137117),
-           type = "only_mandatory")
+           type = "everything")
   {
     # Input for testing ----
 
-    # data_model_baseTypes_path <-
-    #   "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    # years <- c(2018:2020)
+    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    # samplingScheme <- "DNK_Market_Sampling"
+    # years <- c(2021)
+    # type <- "everything"
     # basis_years <-  c(2016:2020)
-    # cruises <- c("MON",  "SEAS")
-    # catch_fractions <- c("Dis", "Lan")
+    # catch_fractions <- c("Lan")
     # specieslist_name <- "DNK_AtSea_Observer_all_species_Dis_Lan"
     # species_to_add <- c(148776, 137117)
     # type <- "everything"
@@ -47,25 +47,27 @@ SL_fishline_2_rdbes <-
     library(haven)
 
     data_model <-
-      readRDS(paste0(data_model_baseTypes_path, "/BaseTypes.rds"))
+      readRDS(paste0(ref_path, "/BaseTypes.rds"))
+
+    link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+
+    link <- subset(link, DEsamplingScheme == sampling_scheme)
 
     sl_temp <- filter(data_model, substr(name, 1, 2) == "SL")
     sl_temp_t <- c("SLrecordType", t(sl_temp$name)[1:nrow(sl_temp)])
+
+    trips <- unique(link$tripId[!is.na(link$tripId)])
 
     # Get data from FishLine
     channel <- odbcConnect("FishLineDW")
     sl <- sqlQuery(
       channel,
       paste(
-        "select speciesCode FROM dbo.SpeciesList
-                  WHERE (year between ",
-        min(basis_years) ,
-        " and ",
-        max(basis_years),
-        ")
-                                 and cruise in ('",
-        paste(cruises, collapse = "','"),
-        "')",
+        "select speciesCode FROM SpeciesList INNER JOIN
+                  Sample ON SpeciesList.sampleId = Sample.sampleId
+                  WHERE (Sample.year between ", min(years), " and ", max(years) , ")
+                and Sample.tripId in (", paste(trips, collapse = ","),
+        ")",
         sep = ""
       )
     )
@@ -121,7 +123,7 @@ SL_fishline_2_rdbes <-
     SLyear <- rep(years, nrow(sl))
 
     sl <-
-      data.frame(sl[rep(seq_len(nrow(sl)), each = 3),], SLyear)
+      data.frame(sl[rep(seq_len(nrow(sl)), each = length(unique(SLyear))),], SLyear)
 
     id <- distinct(ungroup(sl), SLspeciesListName)
     sl$SLid <- row.names(id)
