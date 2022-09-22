@@ -13,10 +13,6 @@
 #'
 #'
 #' @examples
-#'
-#'
-#'
-
 SL_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
            sampling_scheme = "DNK_Market_Sampling",
@@ -25,8 +21,7 @@ SL_fishline_2_rdbes <-
            catch_fractions = c("Dis", "Lan"),
            specieslist_name = "DNK_AtSea_Observer_all_species_same_Dis_Lan",
            species_to_add = c(148776, 137117),
-           type = "everything")
-  {
+           type = "everything") {
     # Input for testing ----
 
     # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
@@ -49,7 +44,8 @@ SL_fishline_2_rdbes <-
     data_model <-
       readRDS(paste0(ref_path, "/BaseTypes.rds"))
 
-    link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+    link <-
+      read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
 
     link <- subset(link, DEsamplingScheme == sampling_scheme)
 
@@ -65,8 +61,13 @@ SL_fishline_2_rdbes <-
       paste(
         "select speciesCode FROM SpeciesList INNER JOIN
                   Sample ON SpeciesList.sampleId = Sample.sampleId
-                  WHERE (Sample.year between ", min(years), " and ", max(years) , ")
-                and Sample.tripId in (", paste(trips, collapse = ","),
+                  WHERE (Sample.year between ",
+        min(years),
+        " and ",
+        max(years),
+        ")
+                and Sample.tripId in (",
+        paste(trips, collapse = ","),
         ")",
         sep = ""
       )
@@ -75,19 +76,25 @@ SL_fishline_2_rdbes <-
 
     channel2 <- odbcConnect("FishLine")
     art <-
-      sqlQuery(channel2,
-               paste("select speciesCode, aphiaID, dkName, latin FROM dbo.L_species"))
+      sqlQuery(
+        channel2,
+        paste(
+          "select speciesCode, aphiaID, dkName, latin FROM dbo.L_species"
+        )
+      )
     close(channel2)
 
-    #Selecting species per catchcategory and region
+    # Selecting species per catchcategory and region
 
     sl <- left_join(sl, art)
 
     no_latin <-
       distinct(filter(sl, is.na(latin)), speciesCode, dkName)
 
-    #Delete all none species
-    sl <- filter(sl, !(is.na(latin)) & !(speciesCode %in% c("INV")) & !is.na(aphiaID))
+    # Delete all none species
+    sl <-
+      filter(sl, !(is.na(latin)) &
+        !(speciesCode %in% c("INV")) & !is.na(aphiaID))
 
     # Add species
     if (length(species_to_add) > 0) {
@@ -99,7 +106,7 @@ SL_fishline_2_rdbes <-
     # Code SL table
 
     sl$SLrecordType <- "SL"
-    sl$SLcountry = "DK"
+    sl$SLcountry <- "DK"
     sl$SLinstitute <- "2195"
     sl$SLspeciesListName <- specieslist_name
     sl$SLcommercialTaxon <- sl$aphiaID
@@ -109,13 +116,10 @@ SL_fishline_2_rdbes <-
 
     if (length(catch_fractions) == 1) {
       sl$SLcatchFraction <- catch_fractions
-
     } else if (length(catch_fractions) == 2) {
       sl_1 <- mutate(sl, SLcatchFraction = catch_fractions[1])
       sl_2 <- mutate(sl, SLcatchFraction = catch_fractions[2])
-
       sl <- rbind(sl_1, sl_2)
-
     } else {
       print("Too many catch_fractions")
     }
@@ -123,7 +127,7 @@ SL_fishline_2_rdbes <-
     SLyear <- rep(years, nrow(sl))
 
     sl <-
-      data.frame(sl[rep(seq_len(nrow(sl)), each = length(unique(SLyear))),], SLyear)
+      data.frame(sl[rep(seq_len(nrow(sl)), each = length(unique(SLyear))), ], SLyear)
 
     id <- distinct(ungroup(sl), SLspeciesListName)
     sl$SLid <- row.names(id)
@@ -136,12 +140,10 @@ SL_fishline_2_rdbes <-
 
       for (i in levels(sl_temp_optional_t)) {
         eval(parse(text = paste0("sl$", i, " <- NA")))
-
       }
     }
 
     SL <- distinct(select(ungroup(sl), one_of(sl_temp_t), SLid))
 
     return(list(SL, sl_temp, sl_temp_t))
-
   }
