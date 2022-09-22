@@ -2,7 +2,7 @@
 #' FishLine 2 RDBES, Location selection (LO)
 #'
 #' @description Converts samples data from national database (fishLine) to RDBES.
-#' Data model v. 1.19
+#' Data model v. 1.19.13
 #'
 #' @param path_to_data_model_baseTypes Where to find the baseTypes for the data model
 #' @param year years needed
