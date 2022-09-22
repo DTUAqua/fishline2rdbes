@@ -20,21 +20,19 @@
 #'
 #'
 
-VS_fishline_2_rdbes <-
-  function(data_model_baseTypes_path = "Q:/mynd/RDB/create_RDBES_data/references",
+LO_fishline_2_rdbes <-
+  function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
            years = 2016,
-           cruises = c("MON", "SEAS", "IN-HIRT"),
            type = "everything"
            )
   {
 
 
     # Input for testing ----
-
-    data_model_baseTypes_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    years <- c(2018:2020)
-    cruises <- c("IN-LYNG")
-    type <- "everything"
+#
+#     ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+#     years <- c(2021)
+#     type <- "everything"
 
     # Set-up ----
 
@@ -44,10 +42,13 @@ VS_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    data_model <- readRDS(paste0(data_model_baseTypes_path, "/BaseTypes.rds"))
+    data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
+    link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
 
     lo_temp <- filter(data_model, substr(name, 1, 2) == "LO")
     lo_temp_t <- c("LOrecordType", t(lo_temp$name)[1:nrow(lo_temp)])
+
+    trips <- unique(link$tripId[!is.na(link$tripId)])
 
     # Get needed stuff ----
 
@@ -58,8 +59,8 @@ VS_fishline_2_rdbes <-
       paste(
         "select * FROM dbo.Trip
          WHERE (Trip.year between ", min(years), " and ", max(years) , ")
-                and Trip.cruise in ('", paste(cruises, collapse = "','"),
-        "')",
+                and Trip.tripId in (", paste(trips, collapse = ","),
+        ")",
         sep = ""
       )
     )
@@ -79,48 +80,50 @@ VS_fishline_2_rdbes <-
     )
     close(channel)
 
-    locode$samplingLocation <- locode$harbourEU
+    locode$LOlocode <- locode$harbourEU
 
     # Add needed stuff ----
     #LOCODE
 
     tr_1 <- left_join(tr, locode, by = c("harbourSample" = "harbour"))
 
+    # Design variables
+
+    tr_2 <- left_join(link, tr_1)
+
+    tr_2 <- subset(tr_2, !is.na(LOlocode))
+
+    tr_3 <- distinct(tr_2[,grep("^[LO]|^[trip]", names(tr_2), value = T)])
+
     # Recode for LO ----
 
-    lo <- tr_1
+    lo <- tr_3
 
-    lo$LOid <- lo$tripId
+    lo$LOid <- "" # To be coded after join with DE and SD
     lo$LOrecordType <- "LO"
 
-    lo$LOlocode <- lo$samplingLocation
     lo$LOlocationName <- ""
     lo$LOlocationType <- ""
 
-    lo$LOsequenceNumber <- NA   #To be coded manual - depends on design
-    lo$LOstratification <- "N"  #To be coded manual - depends on design
-    lo$LOstratumName <- "U"     #To be coded manual - depends on design
-    lo$LOclustering <- "N"      #To be coded manual - depends on design
-    lo$LOclusterName <- "No"     #To be coded manual - depends on design
+    lo$LOsequenceNumber <- NA   # To be coded after join with DE and SD
+    lo$LOclustering <- "N"      # Not used in this scheme
+    lo$LOclusterName <- "No"    # Not used in this scheme
 
-    lo$LOsampler <-  "Observer" # That is not completely TRUE
+    lo$LOsampler <-  "Observer" # DTU Aqua selects the locationa
 
-    lo$LOnumberTotal <- ""      #To be coded manual - depends on design
-    lo$LOnumberSampled <- ""    #To be coded manual - depends on design
-    lo$LOselectionProb <- ""    #To be coded manual - depends on design
-    lo$LOinclusionProb <- ""    #To be coded manual - depends on design
-    lo$LOselectionMethod <- "NotApplicable"  #To be coded manual - depends on design
+    lo$LOselectionProb <- ""    # Not included for this scheme
+    lo$LOinclusionProb <- ""    # Not included for this scheme
 
-    lo$LOunitName <- lo$samplingLocation
+    lo$LOunitName <- lo$LOlocode
 
-    lo$LOselectionMethodCluster <- ""  #To be coded manual - depends on design
-    lo$LOnumberTotalClusters <- ""     #To be coded manual - depends on design
-    lo$LOnumberSampledClusters <- ""   #To be coded manual - depends on design
-    lo$LOselectionProbCluster <- ""    #To be coded manual - depends on design
-    lo$LOinclusionProbCluster <- ""       #To be coded manual - depends on design
+    lo$LOselectionMethodCluster <- ""  # Not used in this scheme
+    lo$LOnumberTotalClusters <- ""     # Not used in this scheme
+    lo$LOnumberSampledClusters <- ""   # Not used in this scheme
+    lo$LOselectionProbCluster <- ""    # Not used in this scheme
+    lo$LOinclusionProbCluster <- ""    # Not used in this scheme
 
     lo$LOsampled <- "Y"
-    lo$LOreasonNotSampled <- ""           #Reasoning requires manual coding
+    lo$LOreasonNotSampled <- ""           # No non-responses, but we have NULL samples in our DB
 
     if (type == "only_mandatory") {
       lo_temp_optional <-
@@ -134,7 +137,7 @@ VS_fishline_2_rdbes <-
       }
     }
 
-    LO <- select(lo, one_of(lo_temp_t), tripId, LOid, dateEnd, year)
+    LO <- select(lo, one_of(lo_temp_t), tripId, LOid)
 
     return(list(LO, lo_temp, lo_temp_t))
 
