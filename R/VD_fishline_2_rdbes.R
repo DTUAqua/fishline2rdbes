@@ -215,7 +215,7 @@ VD_fishline_2_rdbes <-
                                               "VL1824",
                                               ifelse(24 <= vd$VDlength & vd$VDlength < 40,
                                                      "VL2440",
-                                              ifelse(40 <= vd$VDlength, "VL40XX", "Unknown")
+                                              ifelse(40 <= vd$VDlength, "VL40XX", "NK")
                                             ))
                                           )
                                         )
@@ -223,7 +223,7 @@ VD_fishline_2_rdbes <-
                                     )
                                   ))
 
-    vd$VDlengthCategory[is.na(vd$VDlengthCategory)] <- "Unknown"
+    vd$VDlengthCategory[is.na(vd$VDlengthCategory)] <- "NK"
 
     test_VDlenCat <- distinct(vd, VDlength, VDlengthCategory)
 
