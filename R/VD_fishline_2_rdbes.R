@@ -186,28 +186,30 @@ VD_fishline_2_rdbes <-
     vd$VDflagCountry[is.na(vd$VDflagCountry) & vd$VDencryptedVesselCode == "DNK - Unknown vessel"] <- "DK"
 
     vd$VDlength <- round(vd$oal, digits = 2)
-    vd$VDlengthCategory <- ifelse(vd$VDlength < 8,
-                                  "<8",
+    vd$VDlengthCategory <- ifelse(vd$VDlength < 6,
+                                  "VL0006",
                                   ifelse(
-                                    8 <= vd$VDlength & vd$VDlength < 10,
-                                    "8-<10",
+                                    6 <= vd$VDlength & vd$VDlength < 8,
+                                    "VL0608",
                                     ifelse(
-                                      10 <= vd$VDlength & vd$VDlength < 12,
-                                      "10-<12",
+                                      8 <= vd$VDlength & vd$VDlength < 10,
+                                      "VL0810",
                                       ifelse(
-                                        12 <= vd$VDlength & vd$VDlength < 15,
-                                        "12-<15",
+                                        10 <= vd$VDlength & vd$VDlength < 12,
+                                        "VL1012",
                                         ifelse(
-                                          15 <= vd$VDlength & vd$VDlength < 18,
-                                          "15-<18",
+                                          12 <= vd$VDlength & vd$VDlength < 15,
+                                          "VL1215",
                                           ifelse(
-                                            18 <= vd$VDlength & vd$VDlength < 24,
-                                            "18-<24",
+                                            15 <= vd$VDlength & vd$VDlength < 18,
+                                            "VL1518",
                                             ifelse(
-                                              24 <= vd$VDlength & vd$VDlength < 40,
-                                              "24-<40",
-                                              ifelse(40 <= vd$VDlength, "40<", "Unknown")
-                                            )
+                                              18 <= vd$VDlength & vd$VDlength < 24,
+                                              "VL1824",
+                                              ifelse(24 <= vd$VDlength & vd$VDlength < 40,
+                                                     "VL2440",
+                                              ifelse(40 <= vd$VDlength, "VL40XX", "Unknown")
+                                            ))
                                           )
                                         )
                                       )
