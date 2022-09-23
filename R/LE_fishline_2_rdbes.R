@@ -16,20 +16,12 @@
 #'
 #'
 #' @examples
-#'
-#'
-#'
-
 LE_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
-           encryptedVesselCode_path ="Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2022/output/for_production",
-           sampling_scheme ="DNK_Market_Sampling",
+           encryptedVesselCode_path = "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2022/output/for_production",
+           sampling_scheme = "DNK_Market_Sampling",
            years = 2016,
-           type = "everything"
-           )
-  {
-
-
+           type = "everything") {
     # Input for testing ----
 
     # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
@@ -46,7 +38,8 @@ LE_fishline_2_rdbes <-
     library(haven)
 
     data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
-    link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+    link <-
+      read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
 
     link <- subset(link, DEsamplingScheme == sampling_scheme)
 
@@ -64,8 +57,13 @@ LE_fishline_2_rdbes <-
       paste(
         "select Sample.*, Trip.* FROM Sample INNER JOIN
                   Trip ON Sample.tripId = Trip.tripId
-         WHERE (Trip.year between ", min(years), " and ", max(years) , ")
-                and Trip.tripId in (", paste(trips, collapse = ","),
+         WHERE (Trip.year between ",
+        min(years),
+        " and ",
+        max(years),
+        ")
+                and Trip.tripId in (",
+        paste(trips, collapse = ","),
         ")",
         sep = ""
       )
@@ -75,8 +73,7 @@ LE_fishline_2_rdbes <-
     channel <- odbcConnect("FishLine")
     area <- sqlQuery(
       channel,
-      paste(
-        "SELECT DFUArea, areaICES FROM L_DFUArea",
+      paste("SELECT DFUArea, areaICES FROM L_DFUArea",
         sep = ""
       )
     )
@@ -93,15 +90,15 @@ LE_fishline_2_rdbes <-
         max(years),
         "_HVD.csv"
       ),
-      sep = ";")
+      sep = ";"
+      )
 
     # Get LOCODE's for arrival / departure location
 
     channel <- odbcConnect("FishLine")
     locode <- sqlQuery(
       channel,
-      paste(
-        "SELECT harbour, harbourEU FROM L_Harbour",
+      paste("SELECT harbour, harbourEU FROM L_Harbour",
         sep = ""
       )
     )
@@ -115,11 +112,16 @@ LE_fishline_2_rdbes <-
 
     # encryptedVesselCode
 
-    le_1 <- left_join(le, select(encryptedVesselCode, tripId, VDencryptedVesselCode))
+    le_1 <-
+      left_join(
+        le,
+        select(encryptedVesselCode, tripId, VDencryptedVesselCode)
+      )
 
     # arrivalLocation
 
-    le_1 <- left_join(le_1, locode, by = c("harbourLanding" = "harbour"))
+    le_1 <-
+      left_join(le_1, locode, by = c("harbourLanding" = "harbour"))
 
 
     # Recode for FO ----
@@ -131,21 +133,28 @@ LE_fishline_2_rdbes <-
 
     le$LEencryptedVesselCode <- le$VDencryptedVesselCode
 
-    le$LEmixedTrip[le$samplingType == "D" | is.na(le$samplingType)] <- "Y"
+    le$LEmixedTrip[le$samplingType == "D" |
+      is.na(le$samplingType)] <- "Y"
     le$LEmixedTrip[le$samplingType == "M"] <- "N"
-    le$LEmixedTrip[le$LEencryptedVesselCode == "DNK - Unknown vessel"] <- "Y"
+    le$LEmixedTrip[le$LEencryptedVesselCode == "DNK - Unknown vessel"] <-
+      "Y"
 
     distinct(le, samplingType, LEencryptedVesselCode, LEmixedTrip)
 
-    le$LEsequenceNumber <- le$station  #To be coded manual - depends on design
+    le$LEsequenceNumber <-
+      le$station # To be coded manual - depends on design
     le$LEhaulNumber <- ""
 
-    le$LEstratification <- "N"  #To be coded manual - depends on design
-    le$LEstratumName <- "U"     #To be coded manual - depends on design
-    le$LEclustering <- "N"         #To be coded manual - depends on design
-    le$LEclusterName <- "U"     #To be coded manual - depends on design
+    le$LEstratification <-
+      "N" # To be coded manual - depends on design
+    le$LEstratumName <-
+      "U" # To be coded manual - depends on design
+    le$LEclustering <-
+      "N" # To be coded manual - depends on design
+    le$LEclusterName <-
+      "U" # To be coded manual - depends on design
 
-    le$LEsampler <-  le$samplingMethod # That is not completely TRUE
+    le$LEsampler <- le$samplingMethod # That is not completely TRUE
 
     le$LEfullTripAvailable <- "No"
 
@@ -183,19 +192,30 @@ LE_fishline_2_rdbes <-
 
     le$LEobservationCode <- "NotRecorded"
 
-    le$LEnumberTotal <- ""      #To be coded manual - depends on design
-    le$LEnumberSampled <- ""    #To be coded manual - depends on design
-    le$LEselectionProb <- ""    #To be coded manual - depends on design
-    le$LEinclusionProb <- ""    #To be coded manual - depends on design
-    le$LEselectionMethod <- "NotApplicable"  #To be coded manual - depends on design
+    le$LEnumberTotal <-
+      "" # To be coded manual - depends on design
+    le$LEnumberSampled <-
+      "" # To be coded manual - depends on design
+    le$LEselectionProb <-
+      "" # To be coded manual - depends on design
+    le$LEinclusionProb <-
+      "" # To be coded manual - depends on design
+    le$LEselectionMethod <-
+      "NotApplicable" # To be coded manual - depends on design
 
-    le$LEunitName <- paste(le$cruise, le$trip, le$station, sep = "-")
+    le$LEunitName <-
+      paste(le$cruise, le$trip, le$station, sep = "-")
 
-    le$LEselectionMethodCluster <- ""  #To be coded manual - depends on design
-    le$LEnumberTotalClusters <- ""     #To be coded manual - depends on design
-    le$LEnumberSampledClusters <- ""   #To be coded manual - depends on design
-    le$LEselectionProbCluster <- ""    #To be coded manual - depends on design
-    le$LEinclusionProbCluster <- ""    #To be coded manual - depends on design
+    le$LEselectionMethodCluster <-
+      "" # To be coded manual - depends on design
+    le$LEnumberTotalClusters <-
+      "" # To be coded manual - depends on design
+    le$LEnumberSampledClusters <-
+      "" # To be coded manual - depends on design
+    le$LEselectionProbCluster <-
+      "" # To be coded manual - depends on design
+    le$LEinclusionProbCluster <-
+      "" # To be coded manual - depends on design
 
     le$LEsampled <- "Y"
     le$LEreasonNotSampled <- ""
@@ -213,12 +233,11 @@ LE_fishline_2_rdbes <-
 
       for (i in levels(ft_temp_optional_t)) {
         eval(parse(text = paste0("le$", i, " <- ''")))
-
       }
     }
 
-    LE <- select(le, one_of(le_temp_t), tripId, sampleId, LEid, year)
+    LE <-
+      select(le, one_of(le_temp_t), tripId, sampleId, LEid, year)
 
     return(list(LE, le_temp, le_temp_t))
-
   }
