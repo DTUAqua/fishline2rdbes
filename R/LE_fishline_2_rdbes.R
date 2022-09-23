@@ -31,10 +31,10 @@ LE_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    data_model_baseTypes_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2021/output/for_production"
-    years <- c(2018:2020)
-    cruises <- c("IN-LYNG")
+    ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2022/output/for_production"
+    years <- c(2021)
+    sampling_scheme <- "DNK_Market_Sampling"
     type <- "everything"
 
     # Set-up ----
@@ -44,10 +44,15 @@ LE_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    data_model <- readRDS(paste0(data_model_baseTypes_path, "/BaseTypes.rds"))
+    data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
+    link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+
+    link <- subset(link, DEsamplingScheme == sampling_scheme)
 
     le_temp <- filter(data_model, substr(name, 1, 2) == "LE")
     le_temp_t <- c("LErecordType", t(le_temp$name)[1:nrow(le_temp)])
+
+    trips <- unique(link$tripId[!is.na(link$tripId)])
 
     # Get needed stuff ----
 
@@ -56,14 +61,14 @@ LE_fishline_2_rdbes <-
     samp <- sqlQuery(
       channel,
       paste(
-        "select * FROM dbo.Sample
-         WHERE (Sample.year between ", min(years), " and ", max(years) , ")
-                and Sample.cruise in ('", paste(cruises, collapse = "','"),
-        "')",
+        "select Sample.*, Trip.* FROM Sample INNER JOIN
+                  Trip ON Sample.tripId = Trip.tripId
+         WHERE (Trip.year between ", min(years), " and ", max(years) , ")
+                and Trip.tripId in (", paste(trips, collapse = ","),
+        ")",
         sep = ""
       )
     )
-
     close(channel)
 
     channel <- odbcConnect("FishLine")
@@ -113,7 +118,7 @@ LE_fishline_2_rdbes <-
 
     # arrivalLocation
 
-    # le_1 <- left_join(le_1, locode, by = c("harbourLanding" = "harbour"))
+    le_1 <- left_join(le_1, locode, by = c("harbourLanding" = "harbour"))
 
 
     # Recode for FO ----
@@ -125,8 +130,11 @@ LE_fishline_2_rdbes <-
 
     le$LEencryptedVesselCode <- le$VDencryptedVesselCode
 
+    le$LEmixedTrip[le$samplingType == "D" | is.na(le$samplingType)] <- "Y"
+    le$LEmixedTrip[le$samplingType == "M"] <- "N"
     le$LEmixedTrip[le$LEencryptedVesselCode == "DNK - Unknown vessel"] <- "Y"
-    le$LEmixedTrip[le$LEencryptedVesselCode != "DNK - Unknown vessel"] <- "N"
+
+    distinct(le, samplingType, LEencryptedVesselCode, LEmixedTrip)
 
     le$LEsequenceNumber <- le$station  #To be coded manual - depends on design
     le$LEhaulNumber <- ""
@@ -136,7 +144,7 @@ LE_fishline_2_rdbes <-
     le$LEclustering <- "N"         #To be coded manual - depends on design
     le$LEclusterName <- "U"     #To be coded manual - depends on design
 
-    le$LEsampler <-  "Observer" # That is not completely TRUE
+    le$LEsampler <-  le$samplingMethod # That is not completely TRUE
 
     le$LEfullTripAvailable <- "No"
 
@@ -165,6 +173,7 @@ LE_fishline_2_rdbes <-
     le$LEmeshSize <- le$meshSize
     le$LEselectionDevice <- ""
     le$LEselectionDeviceMeshSize <- ""
+
     le$LEtargetSpecies <- ""
 
     le$LEmitigationDevice <- "NotRecorded"
