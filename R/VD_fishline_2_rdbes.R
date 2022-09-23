@@ -31,11 +31,11 @@ VD_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    # data_model_baseTypes_path <- "Q:/mynd/RDB/create_RDBES_data/references"
-    # year <- 2018
-    # cruises <- c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
-    # type <- "only_mandatory"
-    # encrypter_suffix <- "11084"
+    data_model_baseTypes_path <- "Q:/mynd/RDB/create_RDBES_data/references"
+    year <- 2021
+    cruises <- c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
+    type <- "only_mandatory"
+    encrypter_suffix <- "11084"
 
     # Set-up ----
 
@@ -111,7 +111,7 @@ VD_fishline_2_rdbes <-
     ftj_id_1 <-
       select(ftj_id,
              fid,
-             Vessel_identifier_Fid,
+             Vessel_identifier_fid,
              vstart,
              vslut,
              oal,
@@ -148,7 +148,7 @@ VD_fishline_2_rdbes <-
                tripId,
                platform1,
                year,
-               Vessel_identifier_Fid,
+               Vessel_identifier_fid,
                oal,
                harbourEU,
                kw,
@@ -160,7 +160,7 @@ VD_fishline_2_rdbes <-
     VDid <-
       distinct(combined_1,
                platform1,
-               Vessel_identifier_Fid,
+               Vessel_identifier_fid,
                oal,
                harbourEU,
                kw,
@@ -172,7 +172,7 @@ VD_fishline_2_rdbes <-
     vd <- left_join(vd, VDid)
     vd$VDrecordType <- "VD"
 
-    vd$VDencryptedVesselCode <- as.character(vd$Vessel_identifier_Fid)
+    vd$VDencryptedVesselCode <- as.character(vd$Vessel_identifier_fid)
 
     vd$VDencryptedVesselCode[is.na(vd$VDencryptedVesselCode)] <-
       "DNK - Unknown vessel"
