@@ -177,9 +177,16 @@ VD_fishline_2_rdbes <-
     vd$VDencryptedVesselCode[is.na(vd$VDencryptedVesselCode)] <-
       "DNK - Unknown vessel"
 
+    vd$VDencryptedVesselCode[!(is.na(vd$ISO_3166_ices)) & vd$ISO_3166_ices != "DK"] <- "DNK - Foreign vessel"
+
+    distinct(vd, ISO_3166_ices, VDencryptedVesselCode)
+
     vd$VDyear <- vd$year
-    vd$VDcountry <- vd$ISO_3166_ices
-    vd$VDcountry[is.na(vd$Vessel_identifier_fid)] <- "DK"
+
+    vd$VDcountry <- "DK"
+
+    # vd$VDcountry <- vd$ISO_3166_ices
+    # vd$VDcountry[is.na(vd$Vessel_identifier_fid)] <- "DK"   # It is not possible to upload foreign vessels
     vd$VDhomePort <- vd$harbourEU
 
     vd$VDflagCountry <- vd$ISO_3166_ices
