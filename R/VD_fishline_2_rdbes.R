@@ -25,17 +25,17 @@ VD_fishline_2_rdbes <-
            years = 2016,
            cruises = c("MON", "SEAS", "IN-HIRT"),
            type = "only_mandatory",
-           encrypter_suffix = "11084")
+           encrypter_prefix = "11084")
   {
 
 
     # Input for testing ----
 
     data_model_baseTypes_path <- "Q:/mynd/RDB/create_RDBES_data/references"
-    year <- 2021
+    years <- 2021
     cruises <- c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
     type <- "only_mandatory"
-    encrypter_suffix <- "11084"
+    encrypter_prefix <- "11084"
 
     # Set-up ----
 
@@ -247,7 +247,7 @@ VD_fishline_2_rdbes <-
     VD <- select(vd_ok, one_of(vd_temp_t), tripId)
 
     VD$VDencryptedVesselCode[VD$VDencryptedVesselCode != "DNK - Unknown vessel"] <-
-      paste0(VD$VDencryptedVesselCode[VD$VDencryptedVesselCode != "DNK - Unknown vessel"], encrypter_suffix)
+      paste0(encrypter_prefix, VD$VDencryptedVesselCode[VD$VDencryptedVesselCode != "DNK - Unknown vessel"])
 
     return(list(VD, vd_temp, vd_temp_t, vd_not_ok))
 
