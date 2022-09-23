@@ -35,7 +35,7 @@ VD_fishline_2_rdbes <-
     years <- 2021
     cruises <- c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
     type <- "only_mandatory"
-    encrypter_prefix <- "11084"
+    encrypter_prefix <- "DNK11084"
 
     # Set-up ----
 
@@ -82,7 +82,7 @@ VD_fishline_2_rdbes <-
       )
     close(channel)
 
-    fl_ftj_id$Vessel_identifier_Fid <- fl_ftj_id$L_platformId
+    fl_ftj_id$Vessel_identifier_fid <- fl_ftj_id$L_platformId
 
     # Get country code reference
 
@@ -178,7 +178,8 @@ VD_fishline_2_rdbes <-
       "DNK - Unknown vessel"
 
     vd$VDyear <- vd$year
-    vd$VDcountry <- "DK"
+    vd$VDcountry <- vd$ISO_3166_ices
+    vd$VDcountry[is.na(vd$Vessel_identifier_fid)] <- "DK"
     vd$VDhomePort <- vd$harbourEU
 
     vd$VDflagCountry <- vd$ISO_3166_ices
