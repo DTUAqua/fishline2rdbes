@@ -31,11 +31,11 @@ VD_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    data_model_baseTypes_path <- "Q:/mynd/RDB/create_RDBES_data/references"
-    years <- 2021
-    cruises <- c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
-    type <- "only_mandatory"
-    encrypter_prefix <- "DNK11084"
+    # data_model_baseTypes_path <- "Q:/mynd/RDB/create_RDBES_data/references"
+    # years <- 2021
+    # cruises <- c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
+    # type <- "only_mandatory"
+    # encrypter_prefix <- "DNK11084"
 
     # Set-up ----
 
