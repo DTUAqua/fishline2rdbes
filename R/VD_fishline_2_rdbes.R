@@ -177,7 +177,8 @@ VD_fishline_2_rdbes <-
     vd$VDencryptedVesselCode[is.na(vd$VDencryptedVesselCode)] <-
       "DNK - Unknown vessel"
 
-    vd$VDencryptedVesselCode[!(is.na(vd$ISO_3166_ices)) & vd$ISO_3166_ices != "DK"] <- "DNK - Foreign vessel"
+    vd$VDencryptedVesselCode[!(is.na(vd$ISO_3166_ices)) & vd$ISO_3166_ices != "DK"] <-
+      paste0("DNK - ", vd$ISO_3166_ices[!(is.na(vd$ISO_3166_ices)) & vd$ISO_3166_ices != "DK"], " vessel")
 
     distinct(vd, ISO_3166_ices, VDencryptedVesselCode)
 
