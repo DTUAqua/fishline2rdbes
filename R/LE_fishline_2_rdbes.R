@@ -21,9 +21,10 @@
 #'
 
 LE_fishline_2_rdbes <-
-  function(data_model_baseTypes_path = "Q:/mynd/RDB/create_RDBES_data/references",
+  function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
+           encryptedVesselCode_path ="Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2022/output/for_production",
+           sampling_scheme ="DNK_Market_Sampling",
            years = 2016,
-           cruises = c("MON", "SEAS", "IN-HIRT"),
            type = "everything"
            )
   {
@@ -31,11 +32,11 @@ LE_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2022/output/for_production"
-    years <- c(2021)
-    sampling_scheme <- "DNK_Market_Sampling"
-    type <- "everything"
+    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    # encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2022/output/for_production"
+    # years <- c(2021)
+    # sampling_scheme <- "DNK_Market_Sampling"
+    # type <- "everything"
 
     # Set-up ----
 
