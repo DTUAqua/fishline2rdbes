@@ -19,15 +19,12 @@
 
 
 
+
 FO_fishline_2_rdbes <-
   function(data_model_baseTypes_path = "Q:/mynd/RDB/create_RDBES_data/references",
            years = 2016,
            cruises = c("MON", "SEAS", "IN-HIRT"),
-           type = "everything"
-           )
-  {
-
-
+           type = "everything") {
     # Input for testing ----
 
     # data_model_baseTypes_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
@@ -43,7 +40,8 @@ FO_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    data_model <- readRDS(paste0(data_model_baseTypes_path, "/BaseTypes.rds"))
+    data_model <-
+      readRDS(paste0(data_model_baseTypes_path, "/BaseTypes.rds"))
 
     fo_temp <- filter(data_model, substr(name, 1, 2) == "FO")
     fo_temp_t <- c("FOrecordType", t(fo_temp$name)[1:nrow(fo_temp)])
@@ -56,8 +54,13 @@ FO_fishline_2_rdbes <-
       channel,
       paste(
         "select * FROM dbo.Sample
-         WHERE (Sample.year between ", min(years), " and ", max(years) , ")
-                and Sample.cruise in ('", paste(cruises, collapse = "','"),
+         WHERE (Sample.year between ",
+        min(years),
+        " and ",
+        max(years),
+        ")
+                and Sample.cruise in ('",
+        paste(cruises, collapse = "','"),
         "')",
         sep = ""
       )
@@ -67,8 +70,7 @@ FO_fishline_2_rdbes <-
     channel <- odbcConnect("FishLine")
     area <- sqlQuery(
       channel,
-      paste(
-        "SELECT DFUArea, areaICES FROM L_DFUArea",
+      paste("SELECT DFUArea, areaICES FROM L_DFUArea",
         sep = ""
       )
     )
@@ -88,29 +90,52 @@ FO_fishline_2_rdbes <-
     fo$FOid <- fo$sampleId
     fo$FOrecordType <- "FO"
 
-    fo$FOsequenceNumber <- fo$station  #To be coded manual - depends on design
-    fo$FOstratification <- "N"  #To be coded manual - depends on design
-    fo$FOstratumName <- "U"     #To be coded manual - depends on design
-    fo$FOclustering <- "N"         #To be coded manual - depends on design
-    fo$FOclusterName <- "No"     #To be coded manual - depends on design
+    fo$FOsequenceNumber <-
+      fo$station # To be coded manual - depends on design
+    fo$FOstratification <-
+      "N" # To be coded manual - depends on design
+    fo$FOstratumName <-
+      "U" # To be coded manual - depends on design
+    fo$FOclustering <-
+      "N" # To be coded manual - depends on design
+    fo$FOclusterName <-
+      "No" # To be coded manual - depends on design
 
     fo$FOsampler[fo$cruise %in% c("MON", "SEAS")] <- "Observer"
     fo$FOsampler[substr(fo$cruise, 1, 3) %in% c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM")] <-
       "Self-Sampling"
 
     fo$FOvalidity <- fo$gearQuality
-    fo$FOvalidity [is.na(fo$FOvalidity)] <- "I"
+    fo$FOvalidity[is.na(fo$FOvalidity)] <- "I"
 
-    fo$FOcatchReg[fo$cruise %in% c("MON", "SEAS") & fo$catchRegistration == "ALL" & fo$speciesRegistration == "ALL"] <- "All"
-    fo$FOcatchReg[fo$cruise %in% c("MON", "SEAS") & fo$catchRegistration == "DIS" & fo$speciesRegistration == "ALL"] <- "Dis"
-    fo$FOcatchReg[fo$cruise %in% c("MON", "SEAS") & fo$catchRegistration == "LAN" & fo$speciesRegistration == "ALL"] <- "Lan"
-    fo$FOcatchReg[fo$cruise %in% c("MON", "SEAS") & fo$catchRegistration == "NON" | fo$speciesRegistration != "ALL"] <- "None"
-    fo$FOcatchReg[fo$cruise %in% c("MON", "SEAS") & is.na(fo$catchRegistration) | is.na(fo$speciesRegistration)] <- "None"
-    fo$FOcatchReg[substr(fo$cruise, 1, 3) %in% c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM")] <- "Lan"
+    fo$FOcatchReg[fo$cruise %in% c("MON", "SEAS") &
+      fo$catchRegistration == "ALL" &
+      fo$speciesRegistration == "ALL"] <- "All"
+    fo$FOcatchReg[fo$cruise %in% c("MON", "SEAS") &
+      fo$catchRegistration == "DIS" &
+      fo$speciesRegistration == "ALL"] <- "Dis"
+    fo$FOcatchReg[fo$cruise %in% c("MON", "SEAS") &
+      fo$catchRegistration == "LAN" &
+      fo$speciesRegistration == "ALL"] <- "Lan"
+    fo$FOcatchReg[fo$cruise %in% c("MON", "SEAS") &
+      fo$catchRegistration == "NON" |
+      fo$speciesRegistration != "ALL"] <- "None"
+    fo$FOcatchReg[fo$cruise %in% c("MON", "SEAS") &
+      is.na(fo$catchRegistration) |
+      is.na(fo$speciesRegistration)] <- "None"
+    fo$FOcatchReg[substr(fo$cruise, 1, 3) %in%
+                    c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM")] <-
+      "Lan"
 
     test <-
       summarise(
-        group_by(fo, cruise, catchRegistration, speciesRegistration, FOcatchReg),
+        group_by(
+          fo,
+          cruise,
+          catchRegistration,
+          speciesRegistration,
+          FOcatchReg
+        ),
         no_hauls = length(unique(sampleId))
       )
 
@@ -127,22 +152,29 @@ FO_fishline_2_rdbes <-
       fo_h$FOstartTime <-
         as.character(strftime(fo_h$dateGearStart, format = "%H:%M"))
       fo_h$FOendDate <- as.Date(fo_h$dateGearEnd)
-      fo_h$FOendTime <- as.character(strftime(fo_h$dateGearEnd, format = "%H:%M"))
+      fo_h$FOendTime <-
+        as.character(strftime(fo_h$dateGearEnd, format = "%H:%M"))
 
       fo_h$FOduration[fo_h$cruise %in% c("MON", "SEAS")] <-
         as.character(round(as.numeric(fo_h$fishingtime), digits = 0))
 
       fo_h$FOdurationSource[fo_h$cruise %in% c("MON", "SEAS")] <-
         "Crew"
-      fo_h$FOdurationSource[substr(fo_h$cruise, 1, 3) %in% c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM")] <-
+      fo_h$FOdurationSource[substr(fo_h$cruise, 1, 3) %in%
+                              c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM")] <-
         "Data"
 
-      fo_h$FOstartLat <- as.character(round(fo_h$latPosStartDec, digits = 5))
-      fo_h$FOstartLon <- as.character(round(fo_h$lonPosStartDec, digits = 5))
-      fo_h$FOstopLat <- as.character(round(fo_h$latPosEndDec, digits = 5))
-      fo_h$FOstopLon <- as.character(round(fo_h$lonPosEndDec, digits = 5))
+      fo_h$FOstartLat <-
+        as.character(round(fo_h$latPosStartDec, digits = 5))
+      fo_h$FOstartLon <-
+        as.character(round(fo_h$lonPosStartDec, digits = 5))
+      fo_h$FOstopLat <-
+        as.character(round(fo_h$latPosEndDec, digits = 5))
+      fo_h$FOstopLon <-
+        as.character(round(fo_h$lonPosEndDec, digits = 5))
 
-      fo_h$FOfishingDepth <- as.character(round(fo_h$depthAveGear, digits = 0))
+      fo_h$FOfishingDepth <-
+        as.character(round(fo_h$depthAveGear, digits = 0))
       fo_h$FOfishingDepth[is.na(fo_h$FOfishingDepth)] <- ""
     }
 
@@ -193,27 +225,40 @@ FO_fishline_2_rdbes <-
     fo$FOtargetSpecies <- ""
 
     fo$FOincidentalByCatchMitigationDeviceFirst <- "NotRecorded"
-    fo$FOincidentalByCatchMitigationDeviceTargetFirst <- "NotApplicable"
+    fo$FOincidentalByCatchMitigationDeviceTargetFirst <-
+      "NotApplicable"
     fo$FOincidentalByCatchMitigationDeviceSecond <- "NotRecorded"
-    fo$FOincidentalByCatchMitigationDeviceTargetSecond <- "NotApplicable"
+    fo$FOincidentalByCatchMitigationDeviceTargetSecond <-
+      "NotApplicable"
 
     fo$FOgearDimensions <- ""
 
     fo$FOobservationCode <- "NotRecorded"
 
-    fo$FOnumberTotal <- ""      #To be coded manual - depends on design
-    fo$FOnumberSampled <- ""    #To be coded manual - depends on design
-    fo$FOselectionProb <- ""    #To be coded manual - depends on design
-    fo$FOinclusionProb <- ""    #To be coded manual - depends on design
-    fo$FOselectionMethod <- "NotApplicable"  #To be coded manual - depends on design
+    fo$FOnumberTotal <-
+      "" # To be coded manual - depends on design
+    fo$FOnumberSampled <-
+      "" # To be coded manual - depends on design
+    fo$FOselectionProb <-
+      "" # To be coded manual - depends on design
+    fo$FOinclusionProb <-
+      "" # To be coded manual - depends on design
+    fo$FOselectionMethod <-
+      "NotApplicable" # To be coded manual - depends on design
 
-    fo$FOunitName <- paste(fo$cruise, fo$trip, fo$station, sep = "-")
+    fo$FOunitName <-
+      paste(fo$cruise, fo$trip, fo$station, sep = "-")
 
-    fo$FOselectionMethodCluster <- ""  #To be coded manual - depends on design
-    fo$FOnumberTotalClusters <- ""     #To be coded manual - depends on design
-    fo$FOnumberSampledClusters <- ""   #To be coded manual - depends on design
-    fo$FOselectionProbCluster <- ""    #To be coded manual - depends on design
-    fo$FOinclusionProbCluster <- ""       #To be coded manual - depends on design
+    fo$FOselectionMethodCluster <-
+      "" # To be coded manual - depends on design
+    fo$FOnumberTotalClusters <-
+      "" # To be coded manual - depends on design
+    fo$FOnumberSampledClusters <-
+      "" # To be coded manual - depends on design
+    fo$FOselectionProbCluster <-
+      "" # To be coded manual - depends on design
+    fo$FOinclusionProbCluster <-
+      "" # To be coded manual - depends on design
 
     fo$FOsampled <- "Y"
     fo$FOreasonNotSampled <- ""
@@ -225,11 +270,19 @@ FO_fishline_2_rdbes <-
     fo$FOreasonNotSampled[fo$catchRegistration == "NON"] <- "Other"
 
     fo$FOsampled[fo$speciesRegistration %in% c("NON", "PAR")] <- "N"
-    fo$FOreasonNotSampled[fo$speciesRegistration %in% c("NON", "PAR")] <- "Other"
+    fo$FOreasonNotSampled[fo$speciesRegistration %in% c("NON", "PAR")] <-
+      "Other"
 
     test_2 <-
       summarise(
-        group_by(fo, cruise, gearQuality, catchRegistration, speciesRegistration, FOsampled),
+        group_by(
+          fo,
+          cruise,
+          gearQuality,
+          catchRegistration,
+          speciesRegistration,
+          FOsampled
+        ),
         no_hauls = length(unique(sampleId))
       )
 
@@ -246,12 +299,20 @@ FO_fishline_2_rdbes <-
 
       for (i in levels(ft_temp_optional_t)) {
         eval(parse(text = paste0("ft$", i, " <- ''")))
-
       }
     }
 
-    FO <- select(fo, one_of(fo_temp_t), tripId, sampleId, FOid, year, cruise, trip)
+    FO <-
+      select(
+        fo,
+        one_of(fo_temp_t),
+        tripId,
+        sampleId,
+        FOid,
+        year,
+        cruise,
+        trip
+      )
 
     return(list(FO, fo_temp, fo_temp_t))
-
   }
