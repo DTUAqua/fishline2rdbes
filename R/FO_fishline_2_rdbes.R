@@ -27,10 +27,10 @@ FO_fishline_2_rdbes <-
            type = "everything") {
     # Input for testing ----
 
-    # data_model_baseTypes_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    # years <- c(2018:2020)
-    # cruises <- c("MON",  "SEAS")
-    # type <- "everything"
+    ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    years <- 2021
+    sampling_scheme <- "DNK_AtSea_Observer_Active"
+    type <- "everything"
 
     # Set-up ----
 
@@ -40,11 +40,16 @@ FO_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    data_model <-
-      readRDS(paste0(data_model_baseTypes_path, "/BaseTypes.rds"))
+    data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
+    link <-
+      read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+
+    link <- subset(link, DEsamplingScheme == sampling_scheme)
 
     fo_temp <- filter(data_model, substr(name, 1, 2) == "FO")
     fo_temp_t <- c("FOrecordType", t(fo_temp$name)[1:nrow(fo_temp)])
+
+    trips <- unique(link$tripId[!is.na(link$tripId)])
 
     # Get needed stuff ----
 
@@ -59,9 +64,9 @@ FO_fishline_2_rdbes <-
         " and ",
         max(years),
         ")
-                and Sample.cruise in ('",
-        paste(cruises, collapse = "','"),
-        "')",
+                and Sample.tripId in (",
+        paste(trips, collapse = ","),
+        ")",
         sep = ""
       )
     )
@@ -80,7 +85,9 @@ FO_fishline_2_rdbes <-
 
     # Add needed stuff ----
 
-    fo <- left_join(samp, area, by = c("dfuArea" = "DFUArea"))
+    fo_0 <- left_join(link[,grep("^[FO]|^[tripId]|^[sampleId]", names(link), value = T)], samp)
+
+    fo <- left_join(fo_0, area, by = c("dfuArea" = "DFUArea"))
 
 
     # Recode for FO ----
