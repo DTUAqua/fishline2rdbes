@@ -25,7 +25,7 @@ LE_fishline_2_rdbes <-
     # Input for testing ----
 
     # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    # encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2022/output/for_production"
+    # encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/output/data_call_2022/for_production"
     # years <- c(2021)
     # sampling_scheme <- "DNK_Market_Sampling"
     # type <- "everything"
@@ -70,6 +70,8 @@ LE_fishline_2_rdbes <-
     )
     close(channel)
 
+    samp <- subset(samp, !(is.na(dfuArea)))
+
     channel <- odbcConnect("FishLine")
     area <- sqlQuery(
       channel,
@@ -108,6 +110,8 @@ LE_fishline_2_rdbes <-
 
     # Add needed stuff ----
 
+    samp$dfuArea <- as.character(samp$dfuArea)
+
     le <- left_join(samp, area, by = c("dfuArea" = "DFUArea"))
 
     # encryptedVesselCode
@@ -139,6 +143,8 @@ LE_fishline_2_rdbes <-
     le$LEmixedTrip[le$LEencryptedVesselCode == "DNK - Unknown vessel"] <-
       "Y"
 
+    le$LEencryptedVesselCode[le$LEmixedTrip == "Y"] <- ""
+
     distinct(le, samplingType, LEencryptedVesselCode, LEmixedTrip)
 
     le$LEsequenceNumber <-
@@ -154,9 +160,9 @@ LE_fishline_2_rdbes <-
     le$LEclusterName <-
       "U" # To be coded manual - depends on design
 
-    le$LEsampler <- le$samplingMethod # That is not completely TRUE
+    le$LEsampler <- "Observer"  #le$samplingMethod # That is not completely TRUE
 
-    le$LEfullTripAvailable <- "No"
+    le$LEfullTripAvailable <- "N"
 
     le$LEcatchReg <- "Lan"
 
@@ -180,6 +186,11 @@ LE_fishline_2_rdbes <-
     le$LEmetier5 <- ""
     le$LEmetier6 <- "MIS_MIS_0_0_0"
     le$LEgear <- le$gearType
+    le$LEgear[is.na(le$LEgear)] <- "MIS"
+    le$LEgear[le$gearType == "LL"] <- "LLS"
+    le$LEgear[le$gearType == "TBN"] <- "OTB"
+    le$LEgear[le$gearType == "FIX"] <- "FPO"
+    le$LEgear[le$gearType == "LHP"] <- "LHM"
     le$LEmeshSize <- le$meshSize
     le$LEselectionDevice <- ""
     le$LEselectionDeviceMeshSize <- ""
