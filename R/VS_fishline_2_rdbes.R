@@ -21,21 +21,20 @@
 #'
 
 VS_fishline_2_rdbes <-
-  function(data_model_baseTypes_path = "Q:/mynd/RDB/create_RDBES_data/references",
-           encryptedVesselCode_path = "Q:/mynd/RDB/create_RDBES_data/RDBES_data_call_2021/output/for_production",
+  function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
+           encryptedVesselCode_path = "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2022/output/for_production",
+           sampling_scheme = "DNK_Market_Sampling",
            years = 2016,
-           cruises = c("MON", "SEAS", "IN-HIRT"),
-           type = "everything"
-           )
+           type = "everything")
   {
 
 
     # Input for testing ----
 
-    # data_model_baseTypes_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    # encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2021/output/for_production"
-    # years <- c(2018:2020)
-    # cruises <- c("MON",  "SEAS", "TBM20", "BLH18")
+    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    # encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/output/data_call_2022/for_production"
+    # sampling_scheme = "DNK_AtSea_Observer_Active"
+    # years <- 2021
     # type <- "everything"
 
     # Set-up ----
@@ -46,10 +45,16 @@ VS_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    data_model <- readRDS(paste0(data_model_baseTypes_path, "/BaseTypes.rds"))
+    data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
+    link <-
+      read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+
+    link <- subset(link, DEsamplingScheme == sampling_scheme)
 
     vs_temp <- filter(data_model, substr(name, 1, 2) == "VS")
     vs_temp_t <- c("VSrecordType", t(vs_temp$name)[1:nrow(vs_temp)])
+
+    trips <- unique(link$tripId[!is.na(link$tripId)])
 
     # Get needed stuff ----
 
@@ -58,32 +63,20 @@ VS_fishline_2_rdbes <-
     tr <- sqlQuery(
       channel,
       paste(
-        "select * FROM dbo.Trip
-         WHERE (Trip.year between ", min(years), " and ", max(years) , ")
-                and Trip.cruise in ('", paste(cruises, collapse = "','"),
-        "')",
+        "select Sample.*, Trip.* FROM Sample INNER JOIN
+                  Trip ON Sample.tripId = Trip.tripId
+         WHERE (Trip.year between ",
+        min(years),
+        " and ",
+        max(years),
+        ")
+                and Trip.tripId in (",
+        paste(trips, collapse = ","),
+        ")",
         sep = ""
       )
     )
     close(channel)
-
-    # Get id's for DNK vessels form the Danish vessel registry
-    ftj_id <- read_sas("Q:/dfad/data/Data/Ftjreg/ftjid.sas7bdat")
-
-    # Get id's for foreign vessels from FishLine
-    channel <- odbcConnect("FishLine")
-    fl_ftj_id <-
-      sqlQuery(
-        channel,
-        paste(
-          "SELECT L_platformId, platform
-         FROM L_Platform
-         WHERE (nationality <> 'DNK')"
-        )
-      )
-    close(channel)
-
-    fl_ftj_id$Vessel_identifier_fid <- fl_ftj_id$L_platformId
 
     # Get VDencryptedVesselCode
 
@@ -94,80 +87,66 @@ VS_fishline_2_rdbes <-
 
     tr_1 <- left_join(tr, VDencryptedVesselCode[c("VDencryptedVesselCode", "tripId")])
 
-    # Vessel_identifier_fid as unit name
-    # Depends on country
+    # # Vessel_identifier_fid as unit name
+    # # Depends on country
+    #
+    # vessel_dnk <- subset(tr_1, nationalityPlatform1 == "DNK")
+    # vessel_not_dnk <- subset(tr_1, nationalityPlatform1 != "DNK" |
+    #                            is.na(nationalityPlatform1))
+    #
+    # # DNK
+    #
+    # vessel_dnk$arvDate <- as.Date(vessel_dnk$dateEnd)
+    # vessel_dnk_1 <-
+    #   distinct(vessel_dnk, platform1, nationalityPlatform1, arvDate, tripId)
+    # vessel_dnk_1$platform1 <- as.character(vessel_dnk_1$platform1)
+    #
+    # ftj_id_1 <-
+    #   select(ftj_id,
+    #          fid,
+    #          Vessel_identifier_fid,
+    #          vstart,
+    #          vslut,
+    #          oal,
+    #          bhavn,
+    #          kw,
+    #          bt,
+    #          brt)
+    #
+    # vessel_dnk_2 <-
+    #   sqldf("select * from vessel_dnk_1 a left join ftj_id_1 b on a.platform1=b.fid")
+    # vessel_dnk_2 <- subset(vessel_dnk_2, arvDate >= vstart & arvDate <= vslut)
+    # vessel_dnk_3 <- full_join(vessel_dnk, vessel_dnk_2)
+    #
+    # # Not DNK
+    #
+    # vessel_not_dnk_1 <- left_join(vessel_not_dnk, fl_ftj_id, by = c("platform1" = "platform"))
+    #
+    # # Combine DNK and not DNK
+    #
+    # combined <- bind_rows(vessel_dnk_3, vessel_not_dnk_1)
 
-    vessel_dnk <- subset(tr_1, nationalityPlatform1 == "DNK")
-    vessel_not_dnk <- subset(tr_1, nationalityPlatform1 != "DNK" |
-                               is.na(nationalityPlatform1))
-
-    # DNK
-
-    vessel_dnk$arvDate <- as.Date(vessel_dnk$dateEnd)
-    vessel_dnk_1 <-
-      distinct(vessel_dnk, platform1, nationalityPlatform1, arvDate, tripId)
-    vessel_dnk_1$platform1 <- as.character(vessel_dnk_1$platform1)
-
-    ftj_id_1 <-
-      select(ftj_id,
-             fid,
-             Vessel_identifier_fid,
-             vstart,
-             vslut,
-             oal,
-             bhavn,
-             kw,
-             bt,
-             brt)
-
-    vessel_dnk_2 <-
-      sqldf("select * from vessel_dnk_1 a left join ftj_id_1 b on a.platform1=b.fid")
-    vessel_dnk_2 <- subset(vessel_dnk_2, arvDate >= vstart & arvDate <= vslut)
-    vessel_dnk_3 <- full_join(vessel_dnk, vessel_dnk_2)
-
-    # Not DNK
-
-    vessel_not_dnk_1 <- left_join(vessel_not_dnk, fl_ftj_id, by = c("platform1" = "platform"))
-
-    # Combine DNK and not DNK
-
-    combined <- bind_rows(vessel_dnk_3, vessel_not_dnk_1)
+    tr_2 <- left_join(tr_1, distinct(link[,grep("^[VS]|^[tripId]", names(link), value = T)]))
 
     # Recode for VS ----
 
-    vs <-
-      distinct(combined,
-               tripId,
-               tripType,
-               cruise,
-               trip,
-               VDencryptedVesselCode,
-               Vessel_identifier_fid,
-               year,
-               dateEnd)
+    vs <- tr_2
 
-    vs$VSid <- vs$tripId
+
+    vs$VSid <- ""
     vs$VSrecordType <- "VS"
 
     vs$VSencryptedVesselCode <- vs$VDencryptedVesselCode
 
     vs$VSsequenceNumber <- NA   #To be coded manual - depends on design
-    vs$VSstratification <- "N"  #To be coded manual - depends on design
-    vs$VSstratumName <- "U"     #To be coded manual - depends on design
     vs$VSclustering <- "N"      #To be coded manual - depends on design
     vs$VSclusterName <- "No"     #To be coded manual - depends on design
 
     vs$VSsampler[vs$cruise %in% c("MON", "SEAS")] <- "Observer"
-    vs$VSsampler[substr(vs$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM")] <-
+    vs$VSsampler[substr(vs$cruise, 1, 3) %in% c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM")] <-
       "Self-Sampling"
 
-    vs$VSnumberTotal <- ""      #To be coded manual - depends on design
-    vs$VSnumberSampled <- ""    #To be coded manual - depends on design
-    vs$VSselectionProb <- ""    #To be coded manual - depends on design
-    vs$VSinclusionProb <- ""    #To be coded manual - depends on design
-    vs$VSselectionMethod <- "NotApplicable"  #To be coded manual - depends on design
-
-    vs$VSunitName <- vs$Vessel_identifier_fid
+    vs$VSunitName <- vs$VDencryptedVesselCode
 
     vs$VSselectionMethodCluster <- ""  #To be coded manual - depends on design
     vs$VSnumberTotalClusters <- ""     #To be coded manual - depends on design
@@ -192,7 +171,7 @@ VS_fishline_2_rdbes <-
       }
     }
 
-    VS <- select(vs, one_of(vs_temp_t), tripId, VSid, dateEnd, year, cruise, trip)
+    VS <- select(vs, one_of(vs_temp_t), tripId)
 
     return(list(VS, vs_temp, vs_temp_t))
 
