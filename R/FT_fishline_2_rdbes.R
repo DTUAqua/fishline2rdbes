@@ -30,11 +30,11 @@ FT_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    # data_model_baseTypes_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    # encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2021/output/for_production"
-    # years <- c(2018:2020)
-    # cruises <- c("MON",  "SEAS", "TBM20")
-    # type <- "everything"
+ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/output/data_call_2022/for_production"
+years <- 2021
+sampling_scheme <- "DNK_AtSea_Observer_Active"
+type <- "everything"
 
     # Set-up ----
 
@@ -44,10 +44,16 @@ FT_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    data_model <- readRDS(paste0(data_model_baseTypes_path, "/BaseTypes.rds"))
+    data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
+    link <-
+      read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+
+    link <- subset(link, DEsamplingScheme == sampling_scheme)
 
     ft_temp <- filter(data_model, substr(name, 1, 2) == "FT")
     ft_temp_t <- c("FTrecordType", t(ft_temp$name)[1:nrow(ft_temp)])
+
+    trips <- unique(link$tripId[!is.na(link$tripId)])
 
     # Get needed stuff ----
 
@@ -57,9 +63,14 @@ FT_fishline_2_rdbes <-
       channel,
       paste(
         "select * FROM dbo.Trip
-         WHERE (Trip.year between ", min(years), " and ", max(years) , ")
-                and Trip.cruise in ('", paste(cruises, collapse = "','"),
-        "')",
+         WHERE (Trip.year between ",
+        min(years),
+        " and ",
+        max(years),
+        ")
+                and Trip.tripId in (",
+        paste(trips, collapse = ","),
+        ")",
         sep = ""
       )
     )
@@ -67,9 +78,14 @@ FT_fishline_2_rdbes <-
       channel,
       paste(
         "SELECT  sampleId, tripId, year, cruise, gearQuality FROM Sample
-         WHERE (Sample.year between ", min(years), " and ", max(years) , ")
-                and Sample.cruise in ('", paste(cruises, collapse = "','"),
-                "') and gearQuality = 'V'",
+         WHERE gearQuality = 'V' and (Sample.year between ",
+        min(years),
+        " and ",
+        max(years),
+        ")
+                and Sample.tripId in (",
+        paste(trips, collapse = ","),
+        ")",
         sep = ""
       )
     )
@@ -105,9 +121,12 @@ FT_fishline_2_rdbes <-
     locode$arrivalLocation <- locode$harbourEU
 
     # Add needed stuff ----
+
+    tr_0 <- left_join(link[,grep("^[FT]|^[trip]", names(link), value = T)], tr)
+
     # encryptedVesselCode
 
-    tr_1 <- left_join(tr, select(encryptedVesselCode, tripId, VDencryptedVesselCode))
+    tr_1 <- left_join(tr_0, select(encryptedVesselCode, tripId, VDencryptedVesselCode))
 
     # arrivalLocation
 
@@ -130,7 +149,12 @@ FT_fishline_2_rdbes <-
                dateStart,
                dateEnd,
                arrivalLocation,
-               numberOfHaulsOrSets)
+               numberOfHaulsOrSets, FTstratification, FTstratumName,
+               FTnumberTotal, FTnumberSampled, FTselectionProb,
+               FTinclusionProb, FTselectionMethod, FTsampled,
+               FTnoSampReason, FOstratification, FOstratumName,
+               FOnumberTotal, FOnumberSampled, FOselectionProb,
+               FOinclusionProb, FOselectionMethod, FOsampled, FOnoSampReason)
 
     ft$FTid <- ft$tripId
     ft$FTrecordType <- "FT"
@@ -138,8 +162,6 @@ FT_fishline_2_rdbes <-
     ft$FTencryptedVesselCode <- ft$VDencryptedVesselCode
 
     ft$FTsequenceNumber <- NA  #To be coded manual - depends on design
-    ft$FTstratification <- "N"  #To be coded manual - depends on design
-    ft$FTstratumName <- "U"     #To be coded manual - depends on design
     ft$FTclustering <- "N"         #To be coded manual - depends on design
     ft$FTclusterName <- "No"     #To be coded manual - depends on design
 
@@ -148,10 +170,10 @@ FT_fishline_2_rdbes <-
       "Self-Sampling"
     ft$FTsampler[is.na(ft$FTsampler)] <- "Observer"
 
-    ft$FTsamplingType[ft$cruise %in% c("MON", "SEAS")] <- "At-Sea"
+    ft$FTsamplingType[ft$cruise %in% c("MON", "SEAS")] <- "AtSea"
     ft$FTsamplingType[substr(ft$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM")] <-
-      "At-Sea"
-    ft$FTsamplingType[is.na(ft$FTsamplingType)] <- "On-Shore"
+      "AtSea"
+    ft$FTsamplingType[is.na(ft$FTsamplingType)] <- "OnShore"
 
     unique(ft[c("cruise", "FTsampler", "FTsamplingType")])
 
@@ -170,12 +192,6 @@ FT_fishline_2_rdbes <-
 
     ft$FTarrivalDate <- as.Date(ft$dateEnd)
     ft$FTarrivalTime <- strftime(ft$dateEnd, format = "%H:%M")
-
-    ft$FTnumberTotal <- ""      #To be coded manual - depends on design
-    ft$FTnumberSampled <- ""    #To be coded manual - depends on design
-    ft$FTselectionProb <- ""    #To be coded manual - depends on design
-    ft$FTinclusionProb <- ""    #To be coded manual - depends on design
-    ft$FTselectionMethod <- "NotApplicable"  #To be coded manual - depends on design
 
     ft$FTunitName <- paste(ft$cruise, ft$trip, sep = "-")
 
