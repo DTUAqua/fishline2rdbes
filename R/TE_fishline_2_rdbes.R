@@ -91,7 +91,7 @@ TE_fishline_2_rdbes <-
     te$TEclustering <- "N"      # Not used in this scheme
     te$TEclusterName <- "No"    # Not used in this scheme
 
-    te$TEsampler <-  te$samplingMethod # DTU Aqua selects the location
+    te$TEsampler <-  "Observer" #te$samplingMethod # DTU Aqua selects the location
 
     te$TEselectionProb <- ""    # Not included for this scheme
     te$TEinclusionProb <- ""    # Not included for this scheme
