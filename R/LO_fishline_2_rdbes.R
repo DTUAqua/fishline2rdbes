@@ -22,6 +22,7 @@
 
 LO_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
+           sampling_scheme = "DNK_Market_Sampling",
            years = 2016,
            type = "everything"
            )
@@ -29,10 +30,11 @@ LO_fishline_2_rdbes <-
 
 
     # Input for testing ----
-#
-#     ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-#     years <- c(2021)
-#     type <- "everything"
+
+    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    # sampling_scheme <- "DNK_Market_Sampling"
+    # years <- c(2021)
+    # type <- "everything"
 
     # Set-up ----
 
@@ -44,6 +46,8 @@ LO_fishline_2_rdbes <-
 
     data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
     link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+
+    link <- subset(link, DEsamplingScheme == sampling_scheme)
 
     lo_temp <- filter(data_model, substr(name, 1, 2) == "LO")
     lo_temp_t <- c("LOrecordType", t(lo_temp$name)[1:nrow(lo_temp)])
