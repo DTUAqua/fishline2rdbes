@@ -20,21 +20,21 @@
 
 
 FT_fishline_2_rdbes <-
-  function(data_model_baseTypes_path = "Q:/mynd/RDB/create_RDBES_data/references",
+  function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
            encryptedVesselCode_path = "Q:/mynd/RDB/create_RDBES_data/RDBES_data_call_2021/output/for_production",
            years = 2016,
-           cruises = c("MON", "SEAS", "IN-HIRT"),
+           sampling_scheme = "DNK_AtSea_Observer_Active",
            type = "everything")
   {
 
 
     # Input for testing ----
 
-ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/output/data_call_2022/for_production"
-years <- 2021
-sampling_scheme <- "DNK_AtSea_Observer_Active"
-type <- "everything"
+# ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+# encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/output/data_call_2022/for_production"
+# years <- 2021
+# sampling_scheme <- "DNK_AtSea_Observer_Active"
+# type <- "everything"
 
     # Set-up ----
 
