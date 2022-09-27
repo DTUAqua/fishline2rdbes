@@ -21,16 +21,16 @@
 
 
 FO_fishline_2_rdbes <-
-  function(data_model_baseTypes_path = "Q:/mynd/RDB/create_RDBES_data/references",
+  function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
+           sampling_scheme = "DNK_Market_Sampling",
            years = 2016,
-           cruises = c("MON", "SEAS", "IN-HIRT"),
            type = "everything") {
     # Input for testing ----
 
-    ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    years <- 2021
-    sampling_scheme <- "DNK_AtSea_Observer_Active"
-    type <- "everything"
+    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    # years <- 2021
+    # sampling_scheme <- "DNK_AtSea_Observer_Active"
+    # type <- "everything"
 
     # Set-up ----
 
@@ -98,11 +98,7 @@ FO_fishline_2_rdbes <-
     fo$FOrecordType <- "FO"
 
     fo$FOsequenceNumber <-
-      fo$station # To be coded manual - depends on design
-    fo$FOstratification <-
-      "N" # To be coded manual - depends on design
-    fo$FOstratumName <-
-      "U" # To be coded manual - depends on design
+      fo$sampleId # To be coded manual - depends on design
     fo$FOclustering <-
       "N" # To be coded manual - depends on design
     fo$FOclusterName <-
@@ -226,6 +222,11 @@ FO_fishline_2_rdbes <-
     fo$FOmetier5 <- ""
     fo$FOmetier6 <- "MIS_MIS_0_0_0"
     fo$FOgear <- fo$gearType
+    fo$FOgear[is.na(fo$FOgear)] <- "MIS"
+    fo$FOgear[fo$gearType == "LL"] <- "LLS"
+    fo$FOgear[fo$gearType == "TBN"] <- "OTB"
+    fo$FOgear[fo$gearType == "FIX"] <- "FPO"
+    fo$FOgear[fo$gearType == "LHP"] <- "LHM"
     fo$FOmeshSize <- fo$meshSize
     fo$FOselectionDevice <- ""
     fo$FOselectionDeviceMeshSize <- ""
@@ -240,18 +241,7 @@ FO_fishline_2_rdbes <-
 
     fo$FOgearDimensions <- ""
 
-    fo$FOobservationCode <- "NotRecorded"
-
-    fo$FOnumberTotal <-
-      "" # To be coded manual - depends on design
-    fo$FOnumberSampled <-
-      "" # To be coded manual - depends on design
-    fo$FOselectionProb <-
-      "" # To be coded manual - depends on design
-    fo$FOinclusionProb <-
-      "" # To be coded manual - depends on design
-    fo$FOselectionMethod <-
-      "NotApplicable" # To be coded manual - depends on design
+    fo$FOobservationCode <- "So"
 
     fo$FOunitName <-
       paste(fo$cruise, fo$trip, fo$station, sep = "-")
