@@ -23,10 +23,10 @@ SA_fishline_2_rdbes <-
            type = "everything") {
     # Input for testing ----
 
-    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    # years <- c(2021)
-    # sampling_scheme <- "DNK_Market_Sampling"
-    # type <- "everything"
+    ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    years <- c(2021)
+    sampling_scheme <- "DNK_AtSea_Observer_Active"
+    type <- "everything"
 
     # Set-up ----
 
@@ -98,6 +98,14 @@ SA_fishline_2_rdbes <-
     sa <- left_join(samp, area, by = c("dfuArea" = "DFUArea"))
     sa <- left_join(sa, art)
 
+    no_latin <-
+      distinct(filter(sa, is.na(latin)), speciesCode)
+
+    # Delete all none species
+    sa <-
+      filter(sa, !(is.na(latin)) &
+               !(speciesCode %in% c("INV")) & !is.na(aphiaID))
+
     # Identify lower hierachy
 
 
@@ -111,6 +119,7 @@ SA_fishline_2_rdbes <-
         station,
         speciesCode,
         sizeSortingEU,
+        landingCategory,
         representative,
         individNum
       )
@@ -123,7 +132,8 @@ SA_fishline_2_rdbes <-
         trip,
         station,
         speciesCode,
-        sizeSortingEU
+        sizeSortingEU,
+        landingCategory
       )
 
     test <- subset(sa, is.na(animalId))
@@ -132,22 +142,30 @@ SA_fishline_2_rdbes <-
       summarise(group_by(subset(sa,!is.na(individNum)), speciesListId, representative),
                 no_indi = length(unique(individNum)))
 
-    lh_num_sum <- summarise(group_by(subset(sa, representative == "ja"), speciesListId), no_fish = sum(ani_number, na.rm = T))
 
-    lh_1_num <- left_join(lh_1, lh_num_sum)
+    lh_num_sum <-
+      summarise(group_by(subset(sa, representative == "ja"), speciesListId),
+                no_fish = sum(ani_number, na.rm = T))
+
+    lh_1_num <- full_join(lh_1, lh_num_sum)
 
     lh_2 <- left_join(lh_uniq, lh_1_num)
 
     lh_2_t <- spread(lh_2, key = representative, value = no_indi)
 
-    # TODO - code B
+
     lh_2_t$SAlowerHierarchy[is.na(lh_2_t$no_fish)] <- "D"
     lh_2_t$SAlowerHierarchy[is.na(lh_2_t$ja) & !(is.na(lh_2_t$nej)) & lh_2_t$no_fish > 0] <- "A"
     lh_2_t$SAlowerHierarchy[!is.na(lh_2_t$ja) & (is.na(lh_2_t$nej)) & lh_2_t$no_fish > 0] <- "C"
+    lh_2_t$SAlowerHierarchy[is.na(lh_2_t$ja) & (is.na(lh_2_t$nej)) & lh_2_t$no_fish > 0] <- "B"
 
     sa_1 <- left_join(sa, lh_2_t)
 
-    table(sa$SAlowerHierarchy)
+    table(sa_1$SAlowerHierarchy)
+
+    sa_2 <- subset(sa_1, !is.na(raisingFactor))
+
+    error <- subset(sa_1, raisingFactor < 1)
 
     # sa_2 <- subset(sa_1, representative == "ja")
 
@@ -168,6 +186,7 @@ SA_fishline_2_rdbes <-
       mutate(
         sa,
         SAstratumName = paste(
+          speciesFAO,
           landingCategory,
           sizeSortingEU,
           sizeSortingDFU,
@@ -186,7 +205,7 @@ SA_fishline_2_rdbes <-
 
     sa <-
       mutate(sa, SApresentation = ifelse(
-        treatment == "UR",
+        treatment %in% c("UR", "KH"), # KH is UR, but cooked
         "WHL",
         ifelse(
           treatment == "RH",
@@ -197,7 +216,9 @@ SA_fishline_2_rdbes <-
             ifelse(
               treatment %in% c("VV", "VK"),
               "WNG",
-              ifelse(treatment == "TAL", "Tail", NA)
+              ifelse(treatment == "HA", "TLD",
+                     ifelse(treatment == "KL", "CLA", NA
+                            ))
             )
           )
         )
@@ -207,15 +228,17 @@ SA_fishline_2_rdbes <-
 
     sa$SAspecimensState <- "NotDetermined"
 
-    sa$SAstateOfProcessing <- "UNK"
+    sa$SAstateOfProcessing[sa$treatment != "KN"] <- "UNK"
+    sa$SAstateOfProcessing[sa$treatment == "KN"] <- "BOI"
 
     sa <- mutate(sa, SAcatchCategory = ifelse(landingCategory == "BMS", "BMS",
-                                              ifelse(landingCategory == "DIS", "Dis",
+                                              ifelse(landingCategory %in% c("DIS", "SÆL"), "Dis",
                                                      ifelse(landingCategory %in% c("KON", "IND"), "Lan", NA))))
 
     sa$SAlandingCategory[sa$landingCategory == "KON"] <- "HuC"
     sa$SAlandingCategory[sa$landingCategory %in% c("IND")] <- "Ind"
     sa$SAlandingCategory[sa$landingCategory %in% c("BMS")] <- "None"
+    sa$SAlandingCategory[sa$landingCategory %in% c("DIS", "SÆL")] <- "None"
     sa$SAcommSizeCatScale <- "EU"
     sa$SAcommSizeCat <- sa$sizeSortingEU
     sa$SAcommSizeCat[sa$SAcommSizeCat == "123"] <- "3"
@@ -311,7 +334,7 @@ SA_fishline_2_rdbes <-
     }
 
     SA <-
-      select(sa, one_of(sa_temp_t), speciesListId, sampleId, SAid, year)
+      distinct(select(sa, one_of(sa_temp_t), speciesListId, sampleId, SAid, year))
 
     return(list(SA, sa_temp, sa_temp_t))
   }
