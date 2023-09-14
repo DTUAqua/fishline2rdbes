@@ -1,0 +1,19 @@
+---
+title: "fishline2rdbes"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{fishline2rdbes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(fishline2rdbes)
+```
