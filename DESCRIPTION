@@ -14,3 +14,5 @@ Imports:
     dplyr,
     RODBC,
     sqldf
+Depends: 
+    R (>= 2.10)
