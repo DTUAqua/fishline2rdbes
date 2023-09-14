@@ -16,7 +16,12 @@
 #' @export
 #' @author Kirsten Birch Håkansson, DTU Aqua & people from the RCG metier group
 #'
-#' @import dplyr stringr data.table openxlsx purrr lubridate RODBC sqldf
+#' @import knitr data.table
+#' @importFrom data.table data.table setnames
+#' @importFrom stringr str_split_fixed str_detect
+#' @importFrom openxlsx read.xlsx
+#' @importFrom purrr map map2 map2_lgl map_lgl
+#' @importFrom dplyr left_join select distinct
 #'
 #' @examples
 #'
@@ -26,14 +31,14 @@ gear_info_fishline_2_rdbes <-
   function(df = samp) {
 
     # usethis::use_package("dplyr")
-    library(stringr)
-    library(data.table)
-    library(openxlsx)
-    library(purrr)
-    library(lubridate)
-    library(RODBC)
-    library(sqldf)
-    library(knitr)
+    # library(stringr)
+    # library(data.table)
+    # library(openxlsx)
+    # library(purrr)
+    # library(lubridate)
+    # library(RODBC)
+    # library(sqldf)
+    # library(knitr)
 
     # Get references ----
 
@@ -67,8 +72,6 @@ gear_info_fishline_2_rdbes <-
 
     print("Adding RCG region")
 
-    if (area_code_type == "fishLine") {
-
       channel <- odbcConnect("FishLine")
       area <- sqlQuery(
         channel,
@@ -97,18 +100,12 @@ gear_info_fishline_2_rdbes <-
       print((distinct(no_rcg_region, year, cruise, trip, station, dfuArea, RCG)))
 
 
-    } else {
-
-      print("get_gear_info only handles areas from fishLine (dfuArea, L_DFUArea) - feel free to implement area types :-)")
-    }
-
 
 
     ## Gear code ----
 
     print("Recode Gear codes")
 
-    if (gear_type_code_type == "fishLine") {
 
       gear_unique_metier <- unique(metier_ref$gear)
       gear_unique_samp <- unique(df$gearType)
@@ -128,18 +125,9 @@ gear_info_fishline_2_rdbes <-
 
       print((select(gear_no_match, year, cruise, trip, station, dfuArea, gearType, gear)))
 
-
-
-    } else {
-
-      print("get_gear_info only handles gear types from fishLine (gearType, L_GearType) - feel free to implement area types :-)")
-
-    }
     ## Target assemblage ----
 
     print("Adding target assemblage")
-
-    if (target_spp_code_type == "fishLine") {
 
       channel <- odbcConnect("FishLine")
       art <- sqlQuery(
@@ -160,30 +148,24 @@ gear_info_fishline_2_rdbes <-
       df_5 <- left_join(df_4, target_ref)
 
 
-    } else {
-
-      print("get_gear_info only handles target species from fishLine (targetSpecies1, L_Species) - feel free to implement area types :-)")
-
-    }
-
     df_5 <- left_join(df_4, metier_ref)
 
     # Code RDBES variables ----
 
-    nationalFishingActivity <- ""
-    metier5 <- ""
-    metier6
-    gear <- gearType
-    # meshSize - already in data with the correct name
-    selectionDevice <- "" # TO DO - we have the info in the observer programs
-    selectionDeviceMeshSize <- "" # Same as above
-    targetSpecies <-
-    # MitigationDevice is not recorded for now, but will come for gillnets in the future
-    incidentalByCatchMitigationDeviceFirst <- "NotRecorded" #This is T for now
-    incidentalByCatchMitigationDeviceTargetFirst <- "NotApplicable"
-    incidentalByCatchMitigationDeviceSecond <- "NotRecorded"
-    incidentalByCatchMitigationDeviceTargetSecond <- "NotApplicable"
-    gearDimensions <- numNets*lengthNets
+    # nationalFishingActivity <- ""
+    # metier5 <- ""
+    # metier6
+    # gear <- gearType
+    # # meshSize - already in data with the correct name
+    # selectionDevice <- "" # TO DO - we have the info in the observer programs
+    # selectionDeviceMeshSize <- "" # Same as above
+    # targetSpecies <-
+    # # MitigationDevice is not recorded for now, but will come for gillnets in the future
+    # incidentalByCatchMitigationDeviceFirst <- "NotRecorded" #This is T for now
+    # incidentalByCatchMitigationDeviceTargetFirst <- "NotApplicable"
+    # incidentalByCatchMitigationDeviceSecond <- "NotRecorded"
+    # incidentalByCatchMitigationDeviceTargetSecond <- "NotApplicable"
+    # gearDimensions <- numNets*lengthNets
 
 
 
