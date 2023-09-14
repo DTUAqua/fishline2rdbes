@@ -5,20 +5,20 @@
 \title{FishLine 2 RDBES, Fishing operation (FO)}
 \usage{
 FO_fishline_2_rdbes(
-  data_model_baseTypes_path = "Q:/mynd/RDB/create_RDBES_data/references",
+  ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
+  sampling_scheme = "DNK_Market_Sampling",
   years = 2016,
-  cruises = c("MON", "SEAS", "IN-HIRT"),
   type = "everything"
 )
 }
 \arguments{
-\item{cruises}{Name of cruises in national database}
-
 \item{type}{only_mandatory | everything}
 
 \item{path_to_data_model_baseTypes}{Where to find the baseTypes for the data model}
 
 \item{year}{years needed}
+
+\item{cruises}{Name of cruises in national database}
 }
 \description{
 Converts samples data from national database (fishLine) to RDBES.
