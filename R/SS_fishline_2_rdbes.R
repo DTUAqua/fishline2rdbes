@@ -24,6 +24,7 @@ SS_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
            sampling_scheme = "DNK_Market_Sampling",
            years = 2016,
+           xx = "observer at-sea",
            specieslist_name = "DNK_Market_Sampling_2021",
            type = "everything"
            )
@@ -32,11 +33,12 @@ SS_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    # sampling_scheme <- "DNK_Market_Sampling"
-    # years <- c(2021)
-    # type <- "everything"
-    # specieslist_name <- "DNK_Market_Sampling_2021"
+    ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    sampling_scheme <- "DNK_AtSea_Observer_Active"
+    years <- c(2021)
+    type <- "everything"
+    specieslist_name <- "DNK_AtSea_Observer_2021"
+    xx <- "observer at-sea"
 
     # Set-up ----
 
@@ -76,6 +78,10 @@ SS_fishline_2_rdbes <-
     )
     close(channel)
 
+    if (xx == "observer at-sea") {
+
+      st <- filter(st, gearQuality == "V" & catchRegistration == "ALL" & speciesRegistration == "ALL")
+    }
 
     # Recode for LO ----
 
@@ -92,25 +98,52 @@ SS_fishline_2_rdbes <-
     ss$SSclustering <- "N"      # Not used in this scheme
     ss$SSclusterName <- "No"    # Not used in this scheme
 
+    if (xx == "other") {
       ss$SSobservationActivityType[ss$tripType == "HVN"] <- "Sort"
       ss$SScatchFraction[ss$tripType == "HVN"] <- "Lan"
       ss$SSobservationType[ss$tripType == "HVN"] <- "Volume"
       ss$SSsampler[ss$tripType == "HVN"] <-  "" # Not relevant, since we do not
       ss$SSuseForCalculateZero[ss$tripType == "HVN"] <- "N"
 
+      ss$SSnumberTotal <- ""
+      ss$SSnumberSampled <- ""
+      ss$SSselectionProb <- ""    # Not included for this scheme
+      ss$SSinclusionProb <- ""    # Not included for this scheme
 
-    ss$SSspeciesListName <- specieslist_name
+      ss$SSselectionMethod <- "NotApplicable"
+
+    }
+
+    if ( xx == "observer at-sea") {
+
+      ss$SSobservationActivityType <- "Sort"
+
+      Lan <- mutate(ss, SScatchFraction = "Lan")
+      Dis <- mutate(ss, SScatchFraction = "Dis")
+      ss <- bind_rows(Lan, Dis)
+
+      ss$SSobservationType <- "Volume"
+      ss$SSsampler <-  "Observer"
+      ss$SSuseForCalculateZero <- "Y" # Not totally T eg. for partial selection
+
+
+      ss$SSnumberTotal <- 1
+      ss$SSnumberSampled <- 1
+      ss$SSselectionProb <- ""    # Not included for this scheme
+      ss$SSinclusionProb <- ""    # Not included for this scheme
+
+      ss$SSselectionMethod <- "CENSUS" # Not totally T eg. for partial selection
+
+
+    }
+
+        ss$SSspeciesListName <- specieslist_name
 
     ss$SStimeTotal <- ""
     ss$SStimeSampled <- ""
-    ss$SSnumberTotal <- ""
-    ss$SSnumberSampled <- ""
-    ss$SSselectionProb <- ""    # Not included for this scheme
-    ss$SSinclusionProb <- ""    # Not included for this scheme
 
-    ss$SSselectionMethod[ss$tripType == "HVN"] <- "NotApplicable"
 
-    ss$SSunitName <- ""
+    ss$SSunitName <- paste(ss$cruise, ss$trip, ss$station, sep = "-")
 
     ss$SSselectionMethodCluster <- ""  # Not used in this scheme
     ss$SSnumberTotalClusters <- ""     # Not used in this scheme

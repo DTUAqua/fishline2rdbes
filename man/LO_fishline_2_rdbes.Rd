@@ -6,6 +6,7 @@
 \usage{
 LO_fishline_2_rdbes(
   ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
+  sampling_scheme = "DNK_Market_Sampling",
   years = 2016,
   type = "everything"
 )
