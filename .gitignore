@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 fishline2rdbes.Rproj
+inst/doc
+/doc/
+/Meta/
