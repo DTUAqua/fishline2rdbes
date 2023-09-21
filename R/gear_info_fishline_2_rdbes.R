@@ -73,8 +73,9 @@ gear_info_fishline_2_rdbes <-
     ### Fix metier ref ----
 
     # Remove >0 metiers - these cause overlap with metiers with secified mesh sizes
+    # Except for DRB, FPN, FPO and FYK - these never have mesh size ranges
 
-    metier_ref <- subset(metier_ref, mesh != ">0")
+    metier_ref <- subset(metier_ref, mesh != ">0" | gear %in% c("DRB", "FPN", "FPO", "FYK"))
 
     # Add years start and end date to relation
 
@@ -164,20 +165,22 @@ gear_info_fishline_2_rdbes <-
 
     gear_no_match <- subset(df_2,!(gear %in% gear_unique_metier))
 
-    print("Station with gear codes not in the metier list: ")
+    if (checks == T) {
+      print("Station with gear codes not in the metier list: ")
 
-    print((
-      dplyr::select(
-        gear_no_match,
-        year,
-        cruise,
-        trip,
-        station,
-        dfuArea,
-        gearType,
-        gear
-      )
-    ))
+      print((
+        dplyr::select(
+          gear_no_match,
+          year,
+          cruise,
+          trip,
+          station,
+          dfuArea,
+          gearType,
+          gear
+        )
+      ))
+    }
 
     df_2$gear[is.na(df_2$gear)] <- "MIS"
 
