@@ -104,8 +104,6 @@ gear_info_fishline_2_rdbes <-
       "https://github.com/ices-eg/RCGs/raw/master/Metiers/Reference_lists/Metier%20Subgroup%20Species%202020.xlsx"
     target_ref <- loadSpeciesList(url_target)
 
-
-
     # Add needed codes ----
     # The metier reference list requires a RCG region, gear and mesh size,
     #target assemblage, selection device and mesh size in the selection device
@@ -150,13 +148,11 @@ gear_info_fishline_2_rdbes <-
 
     print("Recode Gear codes")
 
-
     gear_unique_metier <- unique(metier_ref$gear)
-    gear_unique_samp <- unique(df$gearType)
 
     df_2$gear <- df_2$gearType
 
-    df_2$gear[df$gear == "TBN"] <-
+    df_2$gear[df$gearType == "TBN"] <-
       "OTB" # This is correct TBN is a OTB
 
     # The issues below should be validate
