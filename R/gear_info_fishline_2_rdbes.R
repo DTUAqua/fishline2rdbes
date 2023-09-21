@@ -1,12 +1,12 @@
 #' Gear information from FishLine required in the RDBES
 #'
-#' @description the functions populate nationalFishingActivity, metier5,
+#' @description The function populate nationalFishingActivity, metier5,
 #' metier6, gear, meshSize, selectionDevice, selectionDeviceMeshSize,
 #' targetSpecies, incidentalByCatchMitigationDeviceFirst,
 #' incidentalByCatchMitigationDeviceTargetFirst,
 #' incidentalByCatchMitigationDeviceSecond,
 #' incidentalByCatchMitigationDeviceTargetSecond and gearDimensions
-#' from FishLine
+#' from gear informations in FishLine
 
 #'
 #' @param variables
@@ -32,16 +32,7 @@
 gear_info_fishline_2_rdbes <-
   function(df = samp) {
 
-
-    # library(dplyr)
-    # library(stringr)
-    # library(data.table)
-    # library(openxlsx)
     library(purrr)
-    # library(lubridate)
-    # library(RODBC)
-    # library(sqldf)
-    # library(knitr)
 
     # Get references ----
 
@@ -58,10 +49,6 @@ gear_info_fishline_2_rdbes <-
 
     data.table::data.table()  #Needed for loading the fun - maybe ask RCG metier group to add this to their script
     data.table::setnames(df, names(df), names(df)) #Needed for loading the fun - maybe ask RCG metier group to add this to their script
-    purrr::map(.f = rnorm(1:10), .x = 1)
-    purrr::map2(.f = rnorm(1:10), .x = 1, .y = 2)
-    # l1 <- list(list(a = 1L), list(a = NULL, b = 2L), list(b = 3L))
-    # purrr::map_lgl(.f = stringr::str_detect(), "b", .x = "a")
 
     url_area <-
       "https://github.com/ices-eg/RCGs/raw/master/Metiers/Reference_lists/AreaRegionLookup.csv"
@@ -83,14 +70,21 @@ gear_info_fishline_2_rdbes <-
 
     metier_ref <- loadMetierList(url_metier)
 
-    # Remove >0 metiers
+    ### Fix metier ref ----
 
-    metier_ref <- subset(metier_ref, mesh != ">0" & sd_mesh == 0)
+    # Remove >0 metiers - these cause overlap with metiers with secified mesh sizes
+
+    metier_ref <- subset(metier_ref, mesh != ">0")
 
     # Add years start and end date to relation
 
-    metier_ref$Start_year[is.na(metier_ref$Start_year)] <- 1990
+    metier_ref$Start_year[is.na(metier_ref$Start_year)] <- 1950 # An abrary year in the past
     metier_ref$End_year[is.na(metier_ref$End_year)] <- lubridate::year(lubridate::today())
+
+    # Remove metiers with selection devices. Should be changed in the future
+    # Selection device is required for the Baltic, but for now all active gears in the Baltic are coded as with BACOMA
+
+
 
     ## Species ref ----
 
