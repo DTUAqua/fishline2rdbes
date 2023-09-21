@@ -30,7 +30,7 @@
 
 
 gear_info_fishline_2_rdbes <-
-  function(df = samp) {
+  function(df = samp, checks = T) {
 
     library(purrr)
 
@@ -122,24 +122,29 @@ gear_info_fishline_2_rdbes <-
 
     df_1 <- left_join(df, area, by = c("dfuArea" = "DFUArea"))
 
-    print(paste("Before area join: ", nrow(df)))
-    print(paste("After area join: ", nrow(df_1)))
+    if (checks == T) {
+      print(paste("Before area join: ", nrow(df)))
+      print(paste("After area join: ", nrow(df_1)))
+    }
 
     df_1 <- dplyr::rename(df_1, "area" = "areaICES")
 
     df_2 <- left_join(df_1, area_ref)
 
-    print(paste("Before RCG region join: ", nrow(df_1)))
-    print(paste("After RCG region join: ", nrow(df_2)))
+    if (checks == T) {
+      print(paste("Before RCG region join: ", nrow(df_1)))
+      print(paste("After RCG region join: ", nrow(df_2)))
+    }
 
     no_rcg_region <- subset(df_2, is.na(df_2$RCG))
 
-    print("Station with missing RCG region: ")
+    if (checks == T) {
+      print("Station with missing RCG region: ")
 
-    print((
-      dplyr::distinct(no_rcg_region, year, cruise, trip, station, dfuArea, RCG)
-    ))
-
+      print((
+        dplyr::distinct(no_rcg_region, year, cruise, trip, station, dfuArea, RCG)
+      ))
+    }
 
     ## Gear code ----
 
@@ -246,7 +251,7 @@ gear_info_fishline_2_rdbes <-
 
     # Warning ----
     if (nrow(df) != nrow(dat)) {
-      print("THE RETURNED DF DO NOT HAVE THE SAME NUMBER OF ROW AS THE INPUT DF - CHECK FUNCTION")
+      print("THE NUMBER OF ROWS IN INPUT AND OUTPUT DF DO NOT MATCH - CHECK FUNCTION")
     }
 
     return(dat)
