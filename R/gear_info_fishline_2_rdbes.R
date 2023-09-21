@@ -16,12 +16,14 @@
 #' @export
 #' @author Kirsten Birch Håkansson, DTU Aqua & people from the RCG metier group
 #'
-#' @import knitr data.table
+#' @import knitr purrr
 #' @importFrom data.table data.table setnames
 #' @importFrom stringr str_split_fixed str_detect
 #' @importFrom openxlsx read.xlsx
-#' @importFrom purrr map map2 map2_lgl map_lgl
-#' @importFrom dplyr left_join select distinct
+#' @importFrom purrr map map2 map_lgl
+#' @importFrom dplyr left_join join_by select distinct rename
+#' @importFrom lubridate year today
+#' @importFrom RODBC odbcConnect sqlQuery
 #'
 #' @examples
 #'
@@ -31,20 +33,22 @@ gear_info_fishline_2_rdbes <-
   function(df = samp) {
 
 
-    library(dplyr)
-    library(stringr)
-    library(data.table)
-    library(openxlsx)
+    # library(dplyr)
+    # library(stringr)
+    # library(data.table)
+    # library(openxlsx)
     library(purrr)
-    library(lubridate)
-    library(RODBC)
-    library(sqldf)
-    library(knitr)
+    # library(lubridate)
+    # library(RODBC)
+    # library(sqldf)
+    # library(knitr)
 
     # Get references ----
 
     # Get refences from https://github.com/ices-eg/RCGs/tree/master/Metiers/Reference_lists ----
     ## Code taken from the same repo
+
+    ## Area ref ----
 
     source(
       paste0(
@@ -52,14 +56,27 @@ gear_info_fishline_2_rdbes <-
       )
     )
 
+    data.table::data.table()  #Needed for loading the fun - maybe ask RCG metier group to add this to their script
+    data.table::setnames(df, names(df), names(df)) #Needed for loading the fun - maybe ask RCG metier group to add this to their script
+    purrr::map(.f = rnorm(1:10), .x = 1)
+    purrr::map2(.f = rnorm(1:10), .x = 1, .y = 2)
+    # l1 <- list(list(a = 1L), list(a = NULL, b = 2L), list(b = 3L))
+    # purrr::map_lgl(.f = stringr::str_detect(), "b", .x = "a")
+
     url_area <-
       "https://github.com/ices-eg/RCGs/raw/master/Metiers/Reference_lists/AreaRegionLookup.csv"
 
     area_ref <- loadAreaList(url_area)
 
+    ## Metier ref ----
+
     source(
       "https://raw.githubusercontent.com/ices-eg/RCGs/master/Metiers/Scripts/Functions/loadMetierList.R"
     )
+
+    df$cruise <- stringr::str_split_fixed(df$cruise, "", 1) #Needed for loading the fun - maybe ask RCG metier group to add this to their script
+    x <- stringr::str_detect(df$year, "-") #Needed for loading the fun - maybe ask RCG metier group to add this to their script
+    rm(x)
 
     url_metier <-
       "https://github.com/ices-eg/RCGs/raw/master/Metiers/Reference_lists/RDB_ISSG_Metier_list.csv"
@@ -73,12 +90,18 @@ gear_info_fishline_2_rdbes <-
     # Add years start and end date to relation
 
     metier_ref$Start_year[is.na(metier_ref$Start_year)] <- 1990
-    metier_ref$End_year[is.na(metier_ref$End_year)] <- year(today())
+    metier_ref$End_year[is.na(metier_ref$End_year)] <- lubridate::year(lubridate::today())
 
+    ## Species ref ----
 
     source(
       "https://raw.githubusercontent.com/ices-eg/RCGs/master/Metiers/Scripts/Functions/loadSpeciesList.R"
     )
+
+    # Below crap needed for loading the fun - maybe ask RCG metier group to add this to their script
+
+    y <- openxlsx::read.xlsx("https://github.com/ices-eg/RCGs/raw/master/Metiers/Reference_lists/Metier%20Subgroup%20Species%202020.xlsx", sheet = 1)
+    rm(y)
 
     url_target <-
       "https://github.com/ices-eg/RCGs/raw/master/Metiers/Reference_lists/Metier%20Subgroup%20Species%202020.xlsx"
@@ -94,8 +117,8 @@ gear_info_fishline_2_rdbes <-
 
     print("Adding RCG region")
 
-    channel <- odbcConnect("FishLine")
-    area <- sqlQuery(channel,
+    channel <- RODBC::odbcConnect("FishLine")
+    area <- RODBC::sqlQuery(channel,
                      paste("SELECT DFUArea, areaICES FROM L_DFUArea",
                            sep = ""))
     close(channel)
@@ -105,7 +128,7 @@ gear_info_fishline_2_rdbes <-
     print(paste("Before area join: ", nrow(df)))
     print(paste("After area join: ", nrow(df_1)))
 
-    df_1 <- rename(df_1, "area" = "areaICES")
+    df_1 <- dplyr::rename(df_1, "area" = "areaICES")
 
     df_2 <- left_join(df_1, area_ref)
 
@@ -117,7 +140,7 @@ gear_info_fishline_2_rdbes <-
     print("Station with missing RCG region: ")
 
     print((
-      distinct(no_rcg_region, year, cruise, trip, station, dfuArea, RCG)
+      dplyr::distinct(no_rcg_region, year, cruise, trip, station, dfuArea, RCG)
     ))
 
 
@@ -146,7 +169,7 @@ gear_info_fishline_2_rdbes <-
     print("Station with gear codes not in the metier list: ")
 
     print((
-      select(
+      dplyr::select(
         gear_no_match,
         year,
         cruise,
@@ -164,28 +187,28 @@ gear_info_fishline_2_rdbes <-
 
     print("Adding target assemblage")
 
-    channel <- odbcConnect("FishLine")
-    art <- sqlQuery(channel,
+    channel <- RODBC::odbcConnect("FishLine")
+    art <- RODBC::sqlQuery(channel,
                     paste("SELECT speciesCode, speciesFAO FROM L_Species",
                           sep = ""))
     close(channel)
 
     df_4 <-
-      left_join(df_2, art, by = c("targetSpecies1" = "speciesCode"))
+      dplyr::left_join(df_2, art, by = c("targetSpecies1" = "speciesCode"))
 
     print(paste("Before species join: ", nrow(df)))
     print(paste("After species join: ", nrow(df_4)))
 
     df_4$FAO_species <- df_4$speciesFAO
 
-    df_5 <- left_join(df_4, target_ref)
+    df_5 <- dplyr::left_join(df_4, target_ref)
 
-    df_5 <- rename(df_5, targetSpecies = species_group)
+    df_5 <- dplyr::rename(df_5, targetSpecies = species_group)
 
     print("Adding metier6")
 
     metier_by <-
-      join_by(
+      dplyr::join_by(
         RCG,
         year >= Start_year,
         year <= End_year,
@@ -195,12 +218,12 @@ gear_info_fishline_2_rdbes <-
         meshSize < m_size_to
       )
 
-    df_6 <- left_join(df_5, metier_ref, metier_by)
+    df_6 <- dplyr::left_join(df_5, metier_ref, metier_by)
 
     df_6$metier_level_6[is.na(df_6$metier_level_6)] <-
       "MIS_MIS_0_0_0"
 
-    df_6 <- rename(df_6, metier6 = metier_level_6)
+    df_6 <- dplyr::rename(df_6, metier6 = metier_level_6)
 
     # Code RDBES variables ----
 
