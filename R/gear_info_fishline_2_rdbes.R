@@ -244,6 +244,11 @@ gear_info_fishline_2_rdbes <-
     dat$incidentalByCatchMitigationDeviceTargetSecond <- "NotApplicable"
     # dat$gearDimensions <- dat$numNets * dat$lengthNets
 
+    # Warning ----
+    if (nrow(df) != nrow(dat)) {
+      print("THE RETURNED DF DO NOT HAVE THE SAME NUMBER OF ROW AS THE INPUT DF - CHECK FUNCTION")
+    }
+
     return(dat)
 
   }
