@@ -84,7 +84,10 @@ gear_info_fishline_2_rdbes <-
     # Remove metiers with selection devices. Should be changed in the future
     # Selection device is required for the Baltic, but for now all active gears in the Baltic are coded as with BACOMA
 
+    metier_ref$sd[metier_ref$RCG == "BALT" & metier_ref$sd != 0 & metier_ref$metier_level_6 != "OTB_DEF_115-120_3_115"] <- 0
+    metier_ref$sd_mesh[metier_ref$RCG == "BALT" & metier_ref$sd_mesh != 0 & metier_ref$metier_level_6 != "OTB_DEF_115-120_3_115"] <- 0
 
+    metier_ref <- subset(metier_ref, sd_mesh == 0)
 
     ## Species ref ----
 
