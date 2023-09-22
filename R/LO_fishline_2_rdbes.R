@@ -11,6 +11,8 @@
 #'
 #' @author Kirsten Birch Håkansson, DTU Aqua
 #'
+#' @importFrom plyr rbind.fill
+#'
 #' @return
 #' @export
 #'
@@ -21,39 +23,39 @@
 #'
 
 
-getDataModel <- function(tableName) {
-  ## datamodel
-  library(openxlsx)
-
-  nam <- data.frame(name = c("Design", "Location", "Temporal Event",
-                             "Species Selection",  "Landing event", "Sample",
-                             "Frequency Measure", "Biological Variable"),
-                    code = c("DE", "LO", "TE", "SS", "LE", "SA", "FM", "BV"))
-
-  if (! tableName %in% nam$name){
-    print("Table Name Not Found In CS Design Model")
-  } else{
-
-    j <- match(tableName, nam$name)
-
-    dat = read.xlsx("C:/Users/jostou/Downloads/RDBES Data Model CS.xlsx",
-                    sheet = nam[j, "name"])
-
-    dat <- dat[dat$Order %in% 1:900, c("Order", "Field.Name")]
-    #dat$Field.Name <- substr(dat$Field.Name, 3, nchar(dat$Field.Name))
-
-    dat2 <- data.frame(matrix(nrow = 0, ncol = nrow(dat)))
-    names(dat2) <- dat$Field.Name
-
-    assign(
-      x = nam[j, "code"],
-      value = dat2,
-      envir = .GlobalEnv)
-
-    rm(dat, dat2)
-
-  }
-}
+# getDataModel <- function(tableName) {
+#   ## datamodel
+#   library(openxlsx)
+#
+#   nam <- data.frame(name = c("Design", "Location", "Temporal Event",
+#                              "Species Selection",  "Landing event", "Sample",
+#                              "Frequency Measure", "Biological Variable"),
+#                     code = c("DE", "LO", "TE", "SS", "LE", "SA", "FM", "BV"))
+#
+#   if (! tableName %in% nam$name){
+#     print("Table Name Not Found In CS Design Model")
+#   } else{
+#
+#     j <- match(tableName, nam$name)
+#
+#     dat = read.xlsx("C:/Users/jostou/Downloads/RDBES Data Model CS.xlsx",
+#                     sheet = nam[j, "name"])
+#
+#     dat <- dat[dat$Order %in% 1:900, c("Order", "Field.Name")]
+#     #dat$Field.Name <- substr(dat$Field.Name, 3, nchar(dat$Field.Name))
+#
+#     dat2 <- data.frame(matrix(nrow = 0, ncol = nrow(dat)))
+#     names(dat2) <- dat$Field.Name
+#
+#     assign(
+#       x = nam[j, "code"],
+#       value = dat2,
+#       envir = .GlobalEnv)
+#
+#     rm(dat, dat2)
+#
+#   }
+# }
 
 LO_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
@@ -81,7 +83,7 @@ LO_fishline_2_rdbes <-
     library(haven)
 
     #data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
-    getDataModel("Location")
+    LO <- get_data_model("Location")
 
     link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
 
@@ -167,7 +169,7 @@ LO_fishline_2_rdbes <-
     lo$LOsampled <- "Y"
     #lo$LOreasonNotSampled <- ""           # No non-responses, but we have NULL samples in our DB
 
-    lo <- rbind.fill(LO, lo)
+    lo <- plyr::rbind.fill(LO, lo)
 
     # if (type == "only_mandatory") {
     #   lo_temp_optional <-
