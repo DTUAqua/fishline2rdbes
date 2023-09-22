@@ -32,12 +32,14 @@ get_data_model <- function(table_name, data_model_version = "v1_19_18") {
     dat2 <- data.frame(matrix(nrow = 0, ncol = nrow(dat)))
     names(dat2) <- dat$Field.Name
 
-    assign(
-      x = nam[j, "code"],
-      value = dat2,
-      envir = .GlobalEnv)
+    # assign(
+    #   x = nam[j, "code"],
+    #   value = dat2,
+    #   envir = .GlobalEnv)
 
-    rm(dat, dat2)
+    # rm(dat, dat2)
 
   }
+
+  return(dat2)
 }
