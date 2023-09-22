@@ -3,7 +3,7 @@
 #' @param table_name
 #' @param data_model_version
 #'
-#' @importFrom openslsx read.xlsx
+#' @importFrom openxlsx read.xlsx
 #'
 #' @return
 #' @export
