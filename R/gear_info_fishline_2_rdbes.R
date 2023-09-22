@@ -122,8 +122,8 @@ gear_info_fishline_2_rdbes <-
     df_1 <- left_join(df, area, by = c("dfuArea" = "DFUArea"))
 
     if (checks == T) {
-      print(paste("Before area join: ", nrow(df)))
-      print(paste("After area join: ", nrow(df_1)))
+      print(paste("Before join with L_DFUArea: ", nrow(df)))
+      print(paste("After join with L_DFUArea: ", nrow(df_1)))
     }
 
     df_1 <- dplyr::rename(df_1, "area" = "areaICES")
@@ -131,8 +131,8 @@ gear_info_fishline_2_rdbes <-
     df_2 <- left_join(df_1, area_ref)
 
     if (checks == T) {
-      print(paste("Before RCG region join: ", nrow(df_1)))
-      print(paste("After RCG region join: ", nrow(df_2)))
+      print(paste("Before join with area_ref: ", nrow(df_1)))
+      print(paste("After join with area_ref: ", nrow(df_2)))
     }
 
     no_rcg_region <- subset(df_2, is.na(df_2$RCG))
@@ -166,7 +166,7 @@ gear_info_fishline_2_rdbes <-
     gear_no_match <- subset(df_2,!(gear %in% gear_unique_metier))
 
     if (checks == T) {
-      print("Station with gear codes not in the metier list: ")
+      print("Station with gear type not in the metier list or missing gear type: ")
 
       print((
         dplyr::select(
@@ -197,14 +197,55 @@ gear_info_fishline_2_rdbes <-
     df_4 <-
       dplyr::left_join(df_2, art, by = c("targetSpecies1" = "speciesCode"))
 
-    print(paste("Before species join: ", nrow(df)))
-    print(paste("After species join: ", nrow(df_4)))
+    # Fixed that Ammodytes marinus is missing from the list - so coded as SAN
+    df_4$speciesFAO[df_4$speciesFAO == "QLH"] <- "SAN"
+
+    if (checks == T) {
+      print(paste("Before join with L_Species: ", nrow(df_2)))
+      print(paste("After join with L_Species: ", nrow(df_4)))
+
+    }
 
     df_4$FAO_species <- df_4$speciesFAO
 
     df_5 <- dplyr::left_join(df_4, target_ref)
 
+    if (checks == T) {
+      print(paste("Before join with target_ref: ", nrow(df_4)))
+      print(paste("After join with target_ref: ", nrow(df_5)))
+
+    }
+
     df_5 <- dplyr::rename(df_5, targetSpecies = species_group)
+
+    if (checks == T) {
+      no_target_spp <- subset(df_5, is.na(targetSpecies1) & !(tripType == "HVN" & fisheryType == 1))
+
+      print("Station with missing target species in FishLine (this is always T for HVN, where fisheryType == 1, so these are not included): ")
+
+      print(dplyr::distinct(no_target_spp, year,
+                            cruise,
+                            trip,
+                            tripType,
+                            fisheryType,
+                            station,
+                            targetSpecies1,
+                            targetSpecies))
+
+      no_target_spp <- subset(df_5, is.na(targetSpecies) & !(is.na(targetSpecies1)))
+
+      if (nrow(no_target_spp > 0)) {
+        print("Station where target species in FishLine is not translated (missing from target_ref | missing or wrong speciesFAO in L_Species): ")
+
+        print(dplyr::distinct(no_target_spp, year,
+                              cruise,
+                              trip,
+                              station,
+                              targetSpecies1,
+                              speciesFAO,
+                              targetSpecies))
+      }
+    }
 
     print("Adding metier6")
 
@@ -225,6 +266,12 @@ gear_info_fishline_2_rdbes <-
       "MIS_MIS_0_0_0"
 
     df_6 <- dplyr::rename(df_6, metier6 = metier_level_6)
+
+    if (checks == T) {
+
+      no_metier6 <- subset(df_6, metier6 == "MIS_MIS_0_0_0")
+
+    }
 
     # Code RDBES variables ----
 
