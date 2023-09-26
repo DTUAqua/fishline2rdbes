@@ -9,21 +9,19 @@
 #' @export
 #'
 #' @examples
-get_data_model <- function(table_name, data_model_version = "v1_19_18") {
+get_data_model_vd_sl <- function(table_name, data_model_version = "v1_19_3") {
   ## datamodel
 
-  nam <- data.frame(name = c("Design", "Location", "Temporal Event",
-                             "Species Selection",  "Landing event", "Sample",
-                             "Frequency Measure", "Biological Variable"),
-                    code = c("DE", "LO", "TE", "SS", "LE", "SA", "FM", "BV"))
+  nam <- data.frame(name = c("Vessel Details", "Species List Details"),
+                    code = c("VD", "SL"))
 
   if (! table_name %in% nam$name){
-    print("Table Name Not Found In CS Design Model")
+    print("Table Name Not Found In VD SL Data Model")
   } else{
 
     j <- match(table_name, nam$name)
 
-    dat = openxlsx::read.xlsx(paste0("./data/RDBES_Data_Model_CS_", data_model_version, ".xlsx"),
+    dat = openxlsx::read.xlsx(paste0("./data/RDBES_Data_Model_VD_SL_", data_model_version, ".xlsx"),
                     sheet = nam[j, "name"])
 
     dat <- dat[dat$Order %in% 1:900, c("Order", "Field.Name")]
