@@ -23,7 +23,8 @@
 
 VD_fishline_2_rdbes <-
   function(year = 2022,
-           cruises = c("MON", "SEAS", "IN-HIRT", "IN-LYNG"))
+           cruises = c("MON", "SEAS", "IN-HIRT", "IN-LYNG"),
+           data_model_path)
   {
 
 
@@ -44,7 +45,7 @@ VD_fishline_2_rdbes <-
     library(haven)
 
     # Get data model ----
-    VD <- get_data_model_vd_sl("Vessel Details")
+    VD <- get_data_model_vd_sl("Vessel Details", data_model_path = data_model_path)
 
     # Get needed stuff ----
 
