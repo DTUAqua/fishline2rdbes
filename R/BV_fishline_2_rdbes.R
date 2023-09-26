@@ -19,34 +19,29 @@
 BV_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
            sampling_scheme = "DNK_Market_Sampling",
-           years = 2016,
-           bv_measurement = "length",
-           type = "everything") {
+           years = 2016) {
     # Input for testing ----
 
     # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
     # years <- c(2021)
     # sampling_scheme <- "DNK_Market_Sampling"
-    # type <- "everything"
-    # bv_measurement <- "age"
 
     # Set-up ----
 
 
     library(sqldf)
     library(tidyr)
+    library(plyr, include.only = c("rbind.fill"))
     library(dplyr)
     library(stringr)
     library(haven)
+    library(data.table)
 
-    data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
-    link <-
-      read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+    #data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
+    BV <- get_data_model("Biological Variable")
 
+    link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
     link <- subset(link, DEsamplingScheme == sampling_scheme)
-
-    bv_temp <- filter(data_model, substr(name, 1, 2) == "BV")
-    bv_temp_t <- c("BVrecordType", t(bv_temp$name)[1:nrow(bv_temp)])
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
 
@@ -61,11 +56,11 @@ BV_fishline_2_rdbes <-
                   Animal.statisticalRectangle, Animal.gearQuality, Animal.gearType, Animal.meshSize, Animal.speciesCode, Animal.landingCategory, Animal.dfuBase_Category, Animal.sizeSortingEU, Animal.sizeSortingDFU, Animal.ovigorous, Animal.cuticulaHardness, Animal.treatment,
                   Animal.speciesList_sexCode, Animal.sexCode, Animal.representative, Animal.individNum, Animal.number, Animal.speciesList_number, Animal.length, Animal.lengthMeasureUnit, Animal.weight, Animal.treatmentFactor, Animal.maturityIndex, Animal.maturityIndexMethod,
                   Animal.broodingPhase, Animal.weightGutted, Animal.weightLiver, Animal.weightGonads, Animal.parasiteCode, Animal.fatIndex, Animal.fatIndexMethod, Animal.numVertebra, Animal.maturityReaderId, Animal.maturityReader, Animal.remark, Animal.animalInfo_remark, Animal.catchNum,
-                  Animal.otolithFinScale, Age.age, Age.agePlusGroup, Age.otolithReadingRemark
-FROM        Animal INNER JOIN
-                  SpeciesList ON Animal.speciesListId = SpeciesList.speciesListId INNER JOIN
-                  Sample ON SpeciesList.sampleId = Sample.sampleId LEFT OUTER JOIN
-                  Age ON Animal.animalId = Age.animalId
+                  Animal.otolithFinScale, Age.age, Age.agePlusGroup, Age.otolithReadingRemark, Age.genetics
+FROM        fishlineDW.dbo.Animal INNER JOIN
+                  fishlineDW.dbo.SpeciesList ON Animal.speciesListId = SpeciesList.speciesListId INNER JOIN
+                  fishlineDW.dbo.Sample ON SpeciesList.sampleId = Sample.sampleId LEFT OUTER JOIN
+                  fishlineDW.dbo.Age ON Animal.animalId = Age.animalId
          WHERE (Specieslist.year between ",
         min(years),
         " and ",
@@ -80,8 +75,52 @@ FROM        Animal INNER JOIN
     close(channel)
 
 
-    bv <- subset(samp, !(is.na(individNum)))
+    samp <- mutate(samp, BVpresentation = ifelse(treatment == "UR", "WHL",
+                                             ifelse(treatment == "RH", "GUT",
+                                                    ifelse(treatment == "RU", "GUH",
+                                                           ifelse(treatment %in% c("VV", "VK"), "WNG",
+                                                                  ifelse(treatment == "TAL", "Tail", NA)
+                                                           )
+                                                    )
+                                             )
+    ))
 
+    ###
+    bv <- samp[! is.na(samp$individNum) |
+                       (samp$speciesCode == "BRS" & !is.na(samp$age)), ]
+
+    var <- data.frame(variable = c("sexCode", "length", "weight",
+                                   "maturityIndex", "age", "genetics"),
+                      value = c("", "lengthMeasureUnit", "treatmentFactor", "maturityIndexMethod",
+                                "otolithReadingRemark", ""),
+                      BVvalueUnitOrScale = c("", "Lengthmm", "", "M6", "Ageyear", ""),
+                      BVmethod = c("", "", "", "", "Otoltih", ""),
+                      BVtypeAssessment = c("", "LengthTotal", "WeightLive", "", "age", ""))
+
+    setDT(bv)
+    L1 <- melt.data.table(bv, id.vars = c("animalId", "sampleId", "speciesListId", "year", "cruise", "trip",
+                                              "station", "speciesCode", "landingCategory",
+                                              "sizeSortingEU", "individNum"),
+                          measure.vars = c("sexCode", "length", "weight",
+                                           "maturityIndex", "age", "genetics"),
+                          value.name = "res")
+    L1 <- L1[! is.na(L1$res), ]
+    L1 <- merge(L1, var, by = "variable", all.x = T)
+
+
+    L2 <- melt.data.table(bv, id.vars = c("animalId"),
+                          measure.vars = c("lengthMeasureUnit", "otolithReadingRemark",
+                                           "treatmentFactor"),
+                          variable.name = "value", value.name = "aux")
+
+
+    L2$BVaccuracy <- tolower(ifelse(L2$value == "lengthMeasureUnit", L2$aux, ""))
+    L2$BVcertaintyQualitative <- ifelse(L2$value == "otolithReadingRemark", L2$aux, "Unknown")
+    L2$BVconversionFactorAssessment <- ifelse(L2$value == "treatmentFactor", L2$aux, "1")
+
+    bv <- merge(L1, L2, by = c("animalId", "value"), all.x = T)
+    bv <- merge(bv, unique(samp[, c("animalId", "BVpresentation")]),
+                               by = "animalId", all.x = T)
     # Recode for SA ----
 
     bv$BVid <- ""
@@ -89,58 +128,22 @@ FROM        Animal INNER JOIN
 
     bv$BVnationalUniqueFishId <- bv$animalId
 
-    bv <- mutate(bv, BVpresentation = ifelse(treatment == "UR", "WHL",
-      ifelse(treatment == "RH", "GUT",
-        ifelse(treatment == "RU", "GUH",
-          ifelse(treatment %in% c("VV", "VK"), "WNG",
-            ifelse(treatment == "TAL", "Tail", NA)
-          )
-        )
-      )
-    ))
-
-    test <- filter(bv, is.na(BVpresentation))
-
     bv$BVspecimensState <- "NotDetermined"
 
     bv$BVstateOfProcessing <- "UNK"
 
-    if (bv_measurement == "length") {
-      len <- subset(bv, (!is.na(length)))
+    bv$BVtypeMeasured <- bv$variable
+    bv[bv$speciesCode %in% c("DVH", "DVR", "HRJ") &
+         bv$variable == "length", "BVtypeMeasured"] <- "LengthCarapace"
 
-      len$FMclassMeasured <- round(len$length, digits = 0)
+    bv[bv$speciesCode %in% c("DVH", "DVR", "HRJ") &
+         bv$BVtypeAssessment == "lengthTotal", "BVtypeAssessment"] <- "LengthCarapace"
 
-      len$BVstratification <- ""
-      len$BVstratumName <- ""
+    bv[bv$speciesCode %in% c("SIL") & bv$BVvalueUnitOrScale == "ageyear", "BVvalueUnitOrScale"] <- "Agewr"
 
-      len$BVtypeMeasured[!(len$speciesCode %in% c("DVH", "DVR", "HRJ"))] <- "LengthTotal"
-      len$BVtypeMeasured[len$speciesCode %in% c("DVH", "DVR", "HRJ")] <- "LengthCarapace"
-
-      len$BVtypeAssessment[!(len$speciesCode %in% c("DVH", "DVR", "HRJ"))] <- "LengthTotal"
-      len$BVtypeAssessment[len$speciesCode %in% c("DVH", "DVR", "HRJ")] <- "LengthCarapace"
-
-      len$BVvalueMeasured <- len$length
-
-      len$BVvalueUnitOrScale <- "Lengthmm"
-
-      len$BVmethod <- ""
-      len$BVmeasurementEquipment <- ""
-
-      len$BVaccuracy[len$lengthMeasureUnit == "CM"] <- "cm"
-
-      len$BVcertaintyQualitative <- "Unknown"
-      len$BVcertaintyQuantitative <- ""
-
-      len$BVconversionFactorAssessment <- 1
-
-      len$BVnumberTotal <- ""
-      len$BVnumberSampled <- ""
-      len$BVselectionProb <- ""
-      len$BVinclusionProb <- ""
-      len$BVselectionMethod <- ""
-      len <-
+    bv <-
         mutate(
-          len,
+          bv,
           BVunitName = paste(
             animalId,
             cruise,
@@ -153,198 +156,12 @@ FROM        Animal INNER JOIN
             sep = "-"
           )
         )
-      len <-
-        mutate(len, BVunitName = str_replace_all(BVunitName, "-NA", ""))
 
-      len$BVsampler <- "Observer"
-
-      bv <- len
-    }
-
-    if (bv_measurement == "weight") {
-      w <- subset(bv, (!is.na(weight)))
-
-      w$FMclassMeasured <- round(w$length, digits = 0)
-
-      w$BVstratification <- ""
-      w$BVstratumName <- ""
-
-      w$BVtypeMeasured <- "WeightMeasured"
-
-      w$BVtypeAssessment <- "WeightLive"
-
-      w$BVvalueMeasured <- w$weight
-
-      w$BVvalueUnitOrScale <- "Weightg"
-
-      w$BVmethod <- ""
-      w$BVmeasurementEquipment <- ""
-
-      w$BVaccuracy <- ""
-
-      w$BVcertaintyQualitative <- "Unknown"
-      w$BVcertaintyQuantitative <- ""
-
-      w$BVconversionFactorAssessment <- w$treatmentFactor
-
-      w$BVnumberTotal <- ""
-      w$BVnumberSampled <- ""
-      w$BVselectionProb <- ""
-      w$BVinclusionProb <- ""
-      w$BVselectionMethod <- ""
-      w <-
-        mutate(
-          w,
-          BVunitName = paste(
-            animalId,
-            cruise,
-            trip,
-            station,
-            speciesCode,
-            landingCategory,
-            sizeSortingEU,
-            individNum,
-            sep = "-"
-          )
-        )
-      w <-
-        mutate(w, BVunitName = str_replace_all(BVunitName, "-NA", ""))
-
-      w$BVsampler <- "Observer"
-
-      bv <- w
-    }
-
-    if (bv_measurement == "age") {
-      age <- subset(bv, (!is.na(age)))
-
-      age$FMclassMeasured <- round(age$length, digits = 0)
-
-      age$BVstratification <- ""
-      age$BVstratumName <- ""
-
-      age$BVtypeMeasured <- "Age"
-
-      age$BVtypeAssessment <- "Age"
-
-      age$BVvalueMeasured <- age$age
-
-      age$BVvalueUnitOrScale[!(age$speciesCode %in% c("SIL"))] <- "Ageyear"
-      age$BVvalueUnitOrScale[(age$speciesCode %in% c("SIL"))] <- "Agewr"
-
-      age$BVmethod <- "otolith"
-      age$BVmeasurementEquipment <- ""
-
-      age$BVaccuracy <- ""
-
-      unique(age$otolithReadingRemark)
-
-      age$BVcertaintyQualitative[is.na(age$otolithReadingRemark)] <- "Unknown"
-      age$BVcertaintyQualitative[!(is.na(age$otolithReadingRemark))] <- age$otolithReadingRemark[!(is.na(age$otolithReadingRemark))]
-
-      age$BVcertaintyQuantitative <- ""
-
-      age$BVconversionFactorAssessment <- 1
-
-      age$BVnumberTotal <- ""
-      age$BVnumberSampled <- ""
-      age$BVselectionProb <- ""
-      age$BVinclusionProb <- ""
-      age$BVselectionMethod <- ""
-      age <-
-        mutate(
-          age,
-          BVunitName = paste(
-            animalId,
-            cruise,
-            trip,
-            station,
-            speciesCode,
-            landingCategory,
-            sizeSortingEU,
-            individNum,
-            sep = "-"
-          )
-        )
-      age <-
-        mutate(age, BVunitName = str_replace_all(BVunitName, "-NA", ""))
-
-      age$BVsampler <- "Observer"
-
-      bv <- age
-    }
-
-    if (bv_measurement == "sex") {
-      sex <- subset(bv, (!is.na(sexCode)))
-
-      sex$FMclassMeasured <- round(sex$length, digits = 0)
-
-      sex$BVstratification <- ""
-      sex$BVstratumName <- ""
-
-      sex$BVtypeMeasured <- "Sex"
-
-      sex$BVtypeAssessment <- "Sex"
-
-      sex$BVvalueMeasured[!(is.na(sex$sexCode))] <- sex$sexCode[!(is.na(sex$sexCode))]
-      sex$BVvalueMeasured[(is.na(sex$sexCode))] <- "U"
-
-      sex$BVvalueUnitOrScale <- "Sex"
-
-      sex$BVmethod <- ""
-      sex$BVmeasurementEquipment <- ""
-
-      sex$BVaccuracy <- ""
-
-      sex$BVcertaintyQualitative <- "Unknown"
-      sex$BVcertaintyQuantitative <- ""
-
-      sex$BVconversionFactorAssessment <- 1
-
-      sex$BVnumberTotal <- ""
-      sex$BVnumberSampled <- ""
-      sex$BVselectionProb <- ""
-      sex$BVinclusionProb <- ""
-      sex$BVselectionMethod <- ""
-      sex <-
-        mutate(
-          sex,
-          BVunitName = paste(
-            animalId,
-            cruise,
-            trip,
-            station,
-            speciesCode,
-            landingCategory,
-            sizeSortingEU,
-            individNum,
-            sep = "-"
-          )
-        )
-      sex <-
-        mutate(sex, BVunitName = str_replace_all(BVunitName, "-NA", ""))
-
-      sex$BVsampler <- "Observer"
-
-      bv <- sex
-    }
-
-    bv$BVvalueMeasured <- as.character(bv$BVvalueMeasured)
+    bv$BVsampler <- "Observer"
 
 
-    if (type == "only_mandatory") {
-      bv_temp_optional <-
-        filter(data_model, substr(name, 1, 2) == "BV" & min == 0)
-      bv_temp_optional_t <-
-        factor(t(bv_temp_optional$name)[1:nrow(bv_temp_optional)])
+    bv <- plyr::rbind.fill(BV, bv)
+    bv <- bv[ , c(names(BV), "sampleId", "speciesListId", "BVid", "year")]
 
-      for (i in levels(bv_temp_optional_t)) {
-        eval(parse(text = paste0("bv$", i, " <- ''")))
-      }
-    }
-
-    BV <-
-      select(bv, one_of(bv_temp_t), sampleId, speciesListId, BVid, year, FMclassMeasured)
-
-    return(list(BV, bv_temp, bv_temp_t))
+    return(list(bv, BV))
   }
