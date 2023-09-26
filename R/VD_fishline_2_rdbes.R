@@ -13,7 +13,7 @@
 #' @importFrom RODBC odbcConnect sqlQuery
 #' @importFrom lubridate today
 #' @importFrom plyr rbind.fill
-#' @importFrom dplyr left_join distinct
+#' @importFrom dplyr left_join distinct bind_rows
 #' @importFrom haven read_sas
 #'
 #' @examples
@@ -109,7 +109,7 @@ VD_fishline_2_rdbes <-
 
     # Combine DNK and not DNK
 
-    dat_1 <- bind_rows(vessel_dnk_2, vessel_not_dnk_1)
+    dat_1 <- dplyr::bind_rows(vessel_dnk_2, vessel_not_dnk_1)
 
     # Add flagcountry
 
