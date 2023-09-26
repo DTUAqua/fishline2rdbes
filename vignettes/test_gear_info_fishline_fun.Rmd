@@ -16,4 +16,10 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(fishline2rdbes)
+
+data("data_for_testing_fun_get_gear_info")
+
+df <- data_for_testing_fun_get_gear_info
+
+df_1 <- gear_info_fishline_2_rdbes(df, checks = T)
 ```

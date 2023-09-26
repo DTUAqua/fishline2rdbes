@@ -17,6 +17,8 @@ samp <- RODBC::sqlQuery(
 )
 close(channel)
 
+unique(samp$fisheryType)
+
 samp <- subset(samp, !(substr(cruise, 1, 2) %in% c("BV", "To", "IB", "IE", "HE", "ME", "BI", "KA", "Tu")))
 
 unique(samp$cruise)
@@ -27,7 +29,7 @@ samp$cruise <- "CRUISE"
 samp$trip <- "10"
 samp$station <- "1"
 
-data_for_testing_fun_get_gear_info <- select(samp, sampleId, year, cruise, trip, station, dfuArea, gearType, targetSpecies1, meshSize, selectionDevice,
+data_for_testing_fun_get_gear_info <- select(samp, sampleId, year, cruise, trip, tripType, fisheryType, station, dfuArea, gearType, targetSpecies1, meshSize, selectionDevice,
                  numberTrawls, numNets, heightNets, lengthNets)
 
 usethis::use_data(data_for_testing_fun_get_gear_info, overwrite = T)

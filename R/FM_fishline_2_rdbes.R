@@ -73,7 +73,7 @@ FM_fishline_2_rdbes <-
     close(channel)
 
 
-    sa_2 <- subset(samp, representative == "ja" & is.na(individNum))
+    sa_2 <- subset(samp, representative == "ja" & is.na(individNum)) # OBS TOBIS ...... måske ikke nødvendigt at tænke på tobis
 
     # Recode for SA ----
 
