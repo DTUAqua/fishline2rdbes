@@ -12,6 +12,9 @@
 #' @export
 #' @importFrom RODBC odbcConnect sqlQuery
 #' @importFrom lubridate today
+#' @importFrom plyr rbind.fill
+#' @importFrom dplyr left_join distinct
+#' @importFrom haven read_sas
 #'
 #' @examples
 #'
@@ -20,7 +23,7 @@
 
 VD_fishline_2_rdbes <-
   function(year = 2022,
-           cruises = c("MON", "SEAS", "IN-HIRT", "IN-LYNG"),
+           cruises = c("MON", "SEAS", "IN-HIRT", "IN-LYNG"))
   {
 
 
@@ -33,11 +36,11 @@ VD_fishline_2_rdbes <-
     # encrypter_prefix <- "DNK11084"
 
     # Set-up ----
-
     library(RODBC)
+    library(plyr)
     # library(sqldf)
     library(dplyr)
-    library(stringr)
+    # library(stringr)
     library(haven)
 
     # Get data model ----
@@ -97,7 +100,7 @@ VD_fishline_2_rdbes <-
     vessel_dnk_1 <- dplyr::left_join(vessel_dnk, ftj_id, vessel_by)
 
     vessel_dnk_2 <-
-      left_join(vessel_dnk_2, locode[, c("start", "harbourEU")], by = c("bhavn" = "start"))
+      dplyr::left_join(vessel_dnk_1, locode[, c("start", "harbourEU")], by = c("bhavn" = "start"))
 
     ## Not DNK ----
     # no info at the momemt
@@ -106,11 +109,11 @@ VD_fishline_2_rdbes <-
 
     # Combine DNK and not DNK
 
-    dat_1 <- bind_rows(vessel_dnk_4, vessel_not_dnk_1)
+    dat_1 <- bind_rows(vessel_dnk_2, vessel_not_dnk_1)
 
     # Add flagcountry
 
-    dat_2 <- left_join(dat_1, ctry, by = c("nationalityPlatform1" = "nationality"))
+    dat_2 <- dplyr::left_join(dat_1, ctry, by = c("nationalityPlatform1" = "nationality"))
 
     # test <- unique(combined_1[c("nationalityPlatform1", "ISO_3166_ices")])
 
@@ -119,7 +122,7 @@ VD_fishline_2_rdbes <-
     vd <- dat_2
 
     VDid <-
-      distinct(vd,
+      dplyr::distinct(vd,
                platform1,
                VDencryptedVesselCode,
                oal,
@@ -129,7 +132,7 @@ VD_fishline_2_rdbes <-
 
     VDid$VDid <- c(1:nrow(VDid))
 
-    vd <- left_join(vd, VDid)
+    vd <- dplyr::left_join(vd, VDid)
     vd$VDrecordType <- "VD"
 
     # Fix not known vessels and foreign
@@ -140,7 +143,7 @@ VD_fishline_2_rdbes <-
     vd$VDencryptedVesselCode[!(is.na(vd$ISO_3166_ices)) & vd$ISO_3166_ices != "DK"] <-
       paste0("DNK - ", vd$ISO_3166_ices[!(is.na(vd$ISO_3166_ices)) & vd$ISO_3166_ices != "DK"], " vessel")
 
-    distinct(vd, ISO_3166_ices, VDencryptedVesselCode)
+    # dplyr::distinct(vd, ISO_3166_ices, VDencryptedVesselCode)
 
     vd$VDyear <- vd$year
 
@@ -184,7 +187,7 @@ VD_fishline_2_rdbes <-
 
     vd$VDlengthCategory[is.na(vd$VDlengthCategory)] <- "NK"
 
-    test_VDlenCat <- distinct(vd, VDlength, VDlengthCategory)
+    # test_VDlenCat <- dplyr::distinct(vd, VDlength, VDlengthCategory)
 
     vd$VDpower <- round(vd$kw, digits = 0)
     vd$VDtonnage <-
@@ -196,7 +199,7 @@ VD_fishline_2_rdbes <-
     vd_not_ok <- subset(vd, is.na(VDencryptedVesselCode) | VDencryptedVesselCode == "DNK - Unknown vessel")
 
     vd_not_ok <-
-      right_join(
+      dplyr::right_join(
         select(dat, year, cruise, trip, tripId, samplingType, platform1),
         select(vd_not_ok, tripId, VDencryptedVesselCode)
       )
