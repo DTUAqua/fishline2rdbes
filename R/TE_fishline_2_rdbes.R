@@ -23,9 +23,7 @@
 TE_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/kibi/RDBES/create_RDBES_data/references",
            sampling_scheme = "DNK_Market_Sampling",
-           years = 2016
-           )
-  {
+           years = 2016){
 
 
     # Input for testing ----
@@ -100,7 +98,7 @@ TE_fishline_2_rdbes <-
     te$TEsampled <- "Y"
 
     te <- plyr::rbind.fill(TE, te)
-    te <- te[ , c(names(te), "tripId", "TEid")]
+    te <- te[ , c(names(TE), "tripId", "TEid")]
 
     return(list(te, TE))
 

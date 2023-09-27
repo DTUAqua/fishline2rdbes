@@ -21,8 +21,8 @@ BV_fishline_2_rdbes <-
            sampling_scheme = "DNK_Market_Sampling",
            years = 2016) {
     # Input for testing ----
-
-    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    #
+    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
     # years <- c(2021)
     # sampling_scheme <- "DNK_Market_Sampling"
 
@@ -30,6 +30,7 @@ BV_fishline_2_rdbes <-
 
 
     library(sqldf)
+    library(RODBC)
     library(tidyr)
     library(plyr, include.only = c("rbind.fill"))
     library(dplyr)
@@ -89,13 +90,20 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
     bv <- samp[! is.na(samp$individNum) |
                        (samp$speciesCode == "BRS" & !is.na(samp$age)), ]
 
+    #genetics missing is 0 in the database
+    bv$genetics[bv$genetics == 0] <- NA
+    bv$otolithReadingRemark[is.na(bv$otolithReadingRemark)] <- "Unknown"
+
     var <- data.frame(variable = c("sexCode", "length", "weight",
                                    "maturityIndex", "age", "genetics"),
-                      value = c("", "lengthMeasureUnit", "treatmentFactor", "maturityIndexMethod",
-                                "otolithReadingRemark", ""),
-                      BVvalueUnitOrScale = c("", "Lengthmm", "", "M6", "Ageyear", ""),
-                      BVmethod = c("", "", "", "", "Otoltih", ""),
-                      BVtypeAssessment = c("", "LengthTotal", "WeightLive", "", "age", ""))
+                      value = c("", "lengthMeasureUnit", "treatmentFactor",
+                                "maturityIndexMethod", "otolithReadingRemark", ""),
+                      BVvalueUnitOrScale = c("Sex", "Lengthmm", "Weightg", "SMSF", "Ageyear", ""),
+                      BVmethod = c("", "", "", "gonad", "Otoltih", ""),
+                      BVtypeMeasured = c("Sex", "LengthTotal", "WeightMeasured",
+                                         "Maturity", "Age", "InfoGenetic"),
+                      BVtypeAssessment = c("Sex", "LengthTotal", "WeightLive",
+                                           "Maturity", "Age", "InfoGenetic"))
 
     setDT(bv)
     L1 <- melt.data.table(bv, id.vars = c("animalId", "sampleId", "speciesListId", "year", "cruise", "trip",
@@ -103,8 +111,8 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
                                               "sizeSortingEU", "individNum"),
                           measure.vars = c("sexCode", "length", "weight",
                                            "maturityIndex", "age", "genetics"),
-                          value.name = "res")
-    L1 <- L1[! is.na(L1$res), ]
+                          value.name = "BVvalueMeasured")
+    L1 <- L1[! is.na(L1$BVvalueMeasured), ]
     L1 <- merge(L1, var, by = "variable", all.x = T)
 
 
@@ -113,10 +121,6 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
                                            "treatmentFactor"),
                           variable.name = "value", value.name = "aux")
 
-
-    L2$BVaccuracy <- tolower(ifelse(L2$value == "lengthMeasureUnit", L2$aux, ""))
-    L2$BVcertaintyQualitative <- ifelse(L2$value == "otolithReadingRemark", L2$aux, "Unknown")
-    L2$BVconversionFactorAssessment <- ifelse(L2$value == "treatmentFactor", L2$aux, "1")
 
     bv <- merge(L1, L2, by = c("animalId", "value"), all.x = T)
     bv <- merge(bv, unique(samp[, c("animalId", "BVpresentation")]),
@@ -132,14 +136,20 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
 
     bv$BVstateOfProcessing <- "UNK"
 
-    bv$BVtypeMeasured <- bv$variable
     bv[bv$speciesCode %in% c("DVH", "DVR", "HRJ") &
          bv$variable == "length", "BVtypeMeasured"] <- "LengthCarapace"
 
     bv[bv$speciesCode %in% c("DVH", "DVR", "HRJ") &
          bv$BVtypeAssessment == "lengthTotal", "BVtypeAssessment"] <- "LengthCarapace"
 
-    bv[bv$speciesCode %in% c("SIL") & bv$BVvalueUnitOrScale == "ageyear", "BVvalueUnitOrScale"] <- "Agewr"
+    bv$BVaccuracy <- tolower(ifelse(bv$value == "lengthMeasureUnit", bv$aux, ""))
+
+    # bv[bv$speciesCode %in% c("SIL") & bv$BVvalueUnitOrScale == "ageyear", "BVvalueUnitOrScale"] <- "Agewr"
+    bv$BVcertaintyQualitative <- ifelse(bv$value == "otolithReadingRemark", bv$aux, "Unknown")
+    bv[bv$BVtypeMeasured %in% c("LengthTotal", "WeightMeasured"), "BVcertaintyQualitative"] <- "NotApplicable"
+    bv[bv$BVtypeMeasured %in% c("Sex"), "BVcertaintyQualitative"] <- "QS1"
+
+    bv$BVconversionFactorAssessment <- ifelse(bv$value == "treatmentFactor", bv$aux, "1")
 
     bv <-
         mutate(

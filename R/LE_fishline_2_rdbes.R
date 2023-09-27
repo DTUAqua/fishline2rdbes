@@ -18,7 +18,7 @@
 #' @examples
 LE_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
-           encryptedVesselCode_path = "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2022/output/for_production",
+           encryptedVesselCode_path = "Q:/mynd/kibi/RDBES/create_RDBES_data_old/output/data_call_2022/for_production",
            sampling_scheme = "DNK_Market_Sampling",
            years = 2016) {
     # Input for testing ----

@@ -295,6 +295,7 @@ SA_fishline_2_rdbes <-
     sa$SAreasonNotSampledBV <- "Unknown"
 
     sa <- plyr::rbind.fill(SA, sa)
+    sa <- unique(sa) #?? where are the duplicates comming from
     sa <- sa[ , c(names(SA), "speciesListId", "sampleId", "SAid", "year")]
 
     return(list(sa, SA))

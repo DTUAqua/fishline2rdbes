@@ -25,9 +25,7 @@ SS_fishline_2_rdbes <-
            sampling_scheme = "DNK_Market_Sampling",
            years = 2016,
            xx = "observer at-sea",
-           specieslist_name = "DNK_Market_Sampling_2021",
-           )
-  {
+           specieslist_name = "DNK_Market_Sampling_2021"){
 
 
     # Input for testing ----

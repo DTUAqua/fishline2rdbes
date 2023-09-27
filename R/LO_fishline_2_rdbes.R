@@ -27,10 +27,7 @@
 LO_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/kibi/RDBES/create_RDBES_data/references",
            sampling_scheme = "DNK_Market_Sampling",
-           years = 2016
-           )
-  {
-
+           years = 2016){
 
     # Input for testing ----
 
