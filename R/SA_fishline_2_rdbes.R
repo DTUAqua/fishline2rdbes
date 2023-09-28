@@ -22,7 +22,7 @@ SA_fishline_2_rdbes <-
            years = 2016) {
     # Input for testing ----
 
-    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
     # years <- c(2021)
     # sampling_scheme <- "DNK_AtSea_Observer_Active"
 
@@ -295,8 +295,9 @@ SA_fishline_2_rdbes <-
     sa$SAreasonNotSampledBV <- "Unknown"
 
     sa <- plyr::rbind.fill(SA, sa)
-    sa <- unique(sa) #?? where are the duplicates comming from
-    sa <- sa[ , c(names(SA), "speciesListId", "sampleId", "SAid", "year")]
+    sa <- sa[ , c(names(SA), "SAstateOfProcessing", "speciesListId", "sampleId", "SAid", "year")]
+
+    sa <- unique(sa) #remove pr fish information and stick to by sample
 
     return(list(sa, SA))
   }

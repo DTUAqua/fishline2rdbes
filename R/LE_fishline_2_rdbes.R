@@ -160,7 +160,7 @@ LE_fishline_2_rdbes <-
     le$LEcatchReg <- "Lan"
     le$LEcountry <- "DK"
 
-    le$LEdate <- as.Date(le$dateGearEnd)
+    le$LEdate <- as.character(as.Date(le$dateGearEnd))
 
     le$LEarea <- le$areaICES
     le$LErectangle <- le$statisticalRectangle

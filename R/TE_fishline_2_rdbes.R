@@ -93,7 +93,7 @@ TE_fishline_2_rdbes <-
 
     te$TEsampler <-  "Observer" #te$samplingMethod # DTU Aqua selects the location
 
-    te$TEunitName <- te$dateSample
+    te$TEunitName <- as.character(as.Date(te$dateSample))
 
     te$TEsampled <- "Y"
 

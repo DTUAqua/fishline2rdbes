@@ -147,7 +147,6 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
     # bv[bv$speciesCode %in% c("SIL") & bv$BVvalueUnitOrScale == "ageyear", "BVvalueUnitOrScale"] <- "Agewr"
     bv$BVcertaintyQualitative <- ifelse(bv$value == "otolithReadingRemark", bv$aux, "Unknown")
     bv[bv$BVtypeMeasured %in% c("LengthTotal", "WeightMeasured"), "BVcertaintyQualitative"] <- "NotApplicable"
-    bv[bv$BVtypeMeasured %in% c("Sex"), "BVcertaintyQualitative"] <- "QS1"
 
     bv$BVconversionFactorAssessment <- ifelse(bv$value == "treatmentFactor", bv$aux, "1")
 
