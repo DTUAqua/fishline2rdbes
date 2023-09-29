@@ -9,7 +9,7 @@
 #' @export
 #'
 #' @examples
-get_data_model <- function(table_name, data_model_version = "v1_19_18") {
+get_data_model <- function(table_name, data_model_path, data_model_version = "v1_19_18") {
   ## datamodel
 
   nam <- data.frame(name = c("Design", "Location", "Temporal Event",
@@ -23,7 +23,7 @@ get_data_model <- function(table_name, data_model_version = "v1_19_18") {
 
     j <- match(table_name, nam$name)
 
-    dat = openxlsx::read.xlsx(paste0("./data/RDBES_Data_Model_CS_", data_model_version, ".xlsx"),
+    dat = openxlsx::read.xlsx(paste0(data_model_path, "/RDBES_Data_Model_CS_", data_model_version, ".xlsx"),
                     sheet = nam[j, "name"])
 
     dat <- dat[dat$Order %in% 1:900, c("Order", "Field.Name")]
