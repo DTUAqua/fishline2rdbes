@@ -24,13 +24,14 @@ FO_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
            sampling_scheme = "DNK_Market_Sampling",
            years = 2016,
-           type = "everything") {
+           data_model_path) {
     # Input for testing ----
 
-    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    # years <- 2021
-    # sampling_scheme <- "DNK_AtSea_Observer_Active"
-    # type <- "everything"
+    ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
+    years <- 2021
+    sampling_scheme <- "DNK_AtSea_Observer_Active"
+    data_model_path <-
+      "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
 
     # Set-up ----
 
@@ -40,14 +41,14 @@ FO_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
+    FO <-
+      get_data_model("Fishing Operation", data_model_path = data_model_path)
+
+    # Get link ----
     link <-
       read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
 
     link <- subset(link, DEsamplingScheme == sampling_scheme)
-
-    fo_temp <- filter(data_model, substr(name, 1, 2) == "FO")
-    fo_temp_t <- c("FOrecordType", t(fo_temp$name)[1:nrow(fo_temp)])
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
 
@@ -154,7 +155,7 @@ FO_fishline_2_rdbes <-
       fo_h$FOstartDate <- as.character(as.Date(fo_h$dateGearStart))
       fo_h$FOstartTime <-
         as.character(strftime(fo_h$dateGearStart, format = "%H:%M"))
-      fo_h$FOendDate <- as.Date(fo_h$dateGearEnd)
+      fo_h$FOendDate <- as.character(as.Date(fo_h$dateGearEnd))
       fo_h$FOendTime <-
         as.character(strftime(fo_h$dateGearEnd, format = "%H:%M"))
 
@@ -287,29 +288,12 @@ FO_fishline_2_rdbes <-
     # Should be 0, but that is not possible at the moment
     # fo$FOsampled[ft$cruise %in% c("MON", "SEAS") & is.na(ft$numberOfHaulsOrSets)] <- 0
 
+    # Fill and select data ----
+    fo <- plyr::rbind.fill(FO, fo)
+    fo <- fo[ , c(names(FO), "tripId", "sampleId", "FOid", "year", "cruise", "trip")]
 
-    if (type == "only_mandatory") {
-      ft_temp_optional <-
-        filter(data_model, substr(name, 1, 2) == "FT" & min == 0)
-      ft_temp_optional_t <-
-        factor(t(ft_temp_optional$name)[1:nrow(ft_temp_optional)])
+    fo[is.na(fo) ] <- ""
 
-      for (i in levels(ft_temp_optional_t)) {
-        eval(parse(text = paste0("ft$", i, " <- ''")))
-      }
-    }
+    return(list(fo, FO))
 
-    FO <-
-      select(
-        fo,
-        one_of(fo_temp_t),
-        tripId,
-        sampleId,
-        FOid,
-        year,
-        cruise,
-        trip
-      )
-
-    return(list(FO, fo_temp, fo_temp_t))
   }

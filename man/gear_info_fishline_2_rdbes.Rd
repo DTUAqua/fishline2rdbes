@@ -4,19 +4,19 @@
 \alias{gear_info_fishline_2_rdbes}
 \title{Gear information from FishLine required in the RDBES}
 \usage{
-gear_info_fishline_2_rdbes(df = samp)
+gear_info_fishline_2_rdbes(df = samp, checks = T)
 }
 \arguments{
 \item{selection_device:}{TO DO}
 }
 \description{
-the functions populate nationalFishingActivity, metier5,
+The function populate nationalFishingActivity, metier5,
 metier6, gear, meshSize, selectionDevice, selectionDeviceMeshSize,
 targetSpecies, incidentalByCatchMitigationDeviceFirst,
 incidentalByCatchMitigationDeviceTargetFirst,
 incidentalByCatchMitigationDeviceSecond,
 incidentalByCatchMitigationDeviceTargetSecond and gearDimensions
-from FishLine
+from gear informations in FishLine
 }
 \author{
 Kirsten Birch Håkansson, DTU Aqua & people from the RCG metier group

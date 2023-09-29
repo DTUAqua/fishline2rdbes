@@ -5,25 +5,17 @@
 \title{FishLine 2 RDBES, Vessel details (VD)}
 \usage{
 VD_fishline_2_rdbes(
-  data_model_baseTypes_path = "Q:/mynd/RDB/create_RDBES_data/references",
-  years = 2016,
-  cruises = c("MON", "SEAS", "IN-HIRT"),
-  type = "only_mandatory",
-  encrypter_prefix = "11084"
+  year = 2022,
+  cruises = c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
 )
 }
 \arguments{
-\item{years}{Years needed}
+\item{year}{sample year}
 
-\item{cruises}{Name of cruises in national database}
-
-\item{type}{only_mandatory | everything}
-
-\item{path_to_data_model_baseTypes}{Where to find the baseTypes for the data model}
+\item{cruises}{string with names of cruises in national database}
 }
 \description{
 Converts samples data from national database (fishLine) to RDBES.
-Data model v. 1.19.13
 }
 \author{
 Kirsten Birch Håkansson, DTU Aqua
