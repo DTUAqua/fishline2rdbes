@@ -33,6 +33,10 @@ gear_info_fishline_2_rdbes <-
   function(df = samp, checks = T) {
 
     library(purrr)
+    library(data.table)
+    library(stringr)
+    library(purrr)
+    library(openxlsx)
 
     # Get references ----
 

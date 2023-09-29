@@ -2,18 +2,19 @@
 #' FishLine 2 RDBES, Vessel details (VD)
 #'
 #' @description Converts samples data from national database (fishLine) to RDBES.
-#' Data model v. 1.19.13
 #'
-#' @param path_to_data_model_baseTypes Where to find the baseTypes for the data model
-#' @param years Years needed
-#' @param cruises Name of cruises in national database
-#' @param type only_mandatory | everything
+#' @param year sample year
+#' @param cruises string with names of cruises in national database
 #'
 #' @author Kirsten Birch Håkansson, DTU Aqua
 #'
 #' @return
 #' @export
-#'
+#' @importFrom RODBC odbcConnect sqlQuery
+#' @importFrom lubridate today
+#' @importFrom plyr rbind.fill
+#' @importFrom dplyr left_join distinct bind_rows
+#' @importFrom haven read_sas
 #'
 #' @examples
 #'
@@ -21,11 +22,9 @@
 #'
 
 VD_fishline_2_rdbes <-
-  function(data_model_baseTypes_path = "Q:/mynd/RDB/create_RDBES_data/references",
-           years = 2016,
-           cruises = c("MON", "SEAS", "IN-HIRT"),
-           type = "only_mandatory",
-           encrypter_prefix = "11084")
+  function(year = 2022,
+           cruises = c("MON", "SEAS", "IN-HIRT", "IN-LYNG"),
+           data_model_path)
   {
 
 
@@ -38,27 +37,25 @@ VD_fishline_2_rdbes <-
     # encrypter_prefix <- "DNK11084"
 
     # Set-up ----
-
     library(RODBC)
-    library(sqldf)
+    library(plyr)
+    # library(sqldf)
     library(dplyr)
-    library(stringr)
+    # library(stringr)
     library(haven)
 
-    data_model <- readRDS(paste0(data_model_baseTypes_path, "/BaseTypes.rds"))
-
-    vd_temp <- filter(data_model, substr(name, 1, 2) == "VD")
-    vd_temp_t <- c("VDrecordType", t(vd_temp$name)[1:nrow(vd_temp)])
+    # Get data model ----
+    VD <- get_data_model_vd_sl("Vessel Details", data_model_path = data_model_path)
 
     # Get needed stuff ----
 
-    # Get data from FishLine
-    channel <- odbcConnect("FishLineDW")
-    tr <- sqlQuery(
+    ## Get data from FishLine ----
+    channel <- RODBC::odbcConnect("FishLineDW")
+    dat <- RODBC::sqlQuery(
       channel,
       paste(
         "select * FROM dbo.Trip
-         WHERE (Trip.year between ", min(years), " and ", max(years) , ")
+         WHERE (Trip.year between ", min(year), " and ", max(year) , ")
                 and Trip.cruise in ('", paste(cruises, collapse = "','"),
         "')",
         sep = ""
@@ -66,23 +63,17 @@ VD_fishline_2_rdbes <-
     )
     close(channel)
 
-    # Get id's for DNK vessels form the Danish vessel registry
-    ftj_id <- read_sas("Q:/dfad/data/Data/Ftjreg/ftjid.sas7bdat")
+    ## Get references and codeliste ----
 
-    # Get id's for foreign vessels from FishLine
-    channel <- odbcConnect("FishLine")
-    fl_ftj_id <-
-      sqlQuery(
-        channel,
-        paste(
-          "SELECT L_platformId, platform
-         FROM L_Platform
-         WHERE (nationality <> 'DNK')"
-        )
-      )
-    close(channel)
+    # Get encrypted id's for DNK vessels form the Danish vessel registry
 
-    fl_ftj_id$Vessel_identifier_fid <- fl_ftj_id$L_platformId
+    ftj_id <- read.csv("Q:/dfad/data/Data/Ftjreg/encryptions_RDBES.csv")
+    ftj_id$VDencryptedVesselCode <- paste0(ftj_id$Encrypted_ID, "_", ftj_id$Version_ID)
+    ftj_id$vstart <- as.Date(ftj_id$vstart)
+    ftj_id$vslut <- as.Date(ftj_id$vslut)
+    ftj_id$vslut[is.na(ftj_id$vslut)] <- lubridate::today()
+    ftj_id$bhavn <- as.character(ftj_id$bhavn)
+    ftj_id$btbrt <- as.numeric(ftj_id$btbrt)
 
     # Get country code reference
 
@@ -92,87 +83,60 @@ VD_fishline_2_rdbes <-
     # Get LOCODE's for homeport
     locode <- read_sas("Q:/mynd/SAS Library/Lplads/lplads.sas7bdat")
 
-    # Add needed stuff ----
+    # Add needed stuff to dat ----
+    # This only works for DNK vessels, since we only have vessel info about DNK vessels
+    # Some of the info could probably be found in the EU fleet registre, but for now these just get a
+    # VDencryptedVesselCode that tells where it is from
 
-    # Vessel_identifier_Fid & Homeport
-    # Depends on country
-
-    vessel_dnk <- subset(tr, nationalityPlatform1 == "DNK")
-    vessel_not_dnk <- subset(tr, nationalityPlatform1 != "DNK" |
+    vessel_dnk <- subset(dat, nationalityPlatform1 == "DNK")
+    vessel_not_dnk <- subset(dat, nationalityPlatform1 != "DNK" |
                            is.na(nationalityPlatform1))
 
-    # DNK
+    ## DNK ----
 
-    vessel_dnk$arvDate <- as.Date(vessel_dnk$dateEnd)
-    vessel_dnk_1 <-
-      distinct(vessel_dnk, platform1, nationalityPlatform1, arvDate, tripId)
-    vessel_dnk_1$platform1 <- as.character(vessel_dnk_1$platform1)
+    vessel_dnk$dateEnd <- as.Date(vessel_dnk$dateEnd)
+    vessel_by <- dplyr::join_by(platform1 == fid,
+                                dateEnd >= vstart, dateEnd <= vslut)
 
-    ftj_id_1 <-
-      select(ftj_id,
-             fid,
-             Vessel_identifier_fid,
-             vstart,
-             vslut,
-             oal,
-             bhavn,
-             kw,
-             bt,
-             brt)
+    vessel_dnk_1 <- dplyr::left_join(vessel_dnk, ftj_id, vessel_by)
 
     vessel_dnk_2 <-
-      sqldf("select * from vessel_dnk_1 a left join ftj_id_1 b on a.platform1=b.fid")
-    vessel_dnk_2 <- subset(vessel_dnk_2, arvDate >= vstart & arvDate <= vslut)
-    vessel_dnk_3 <- full_join(vessel_dnk, vessel_dnk_2)
-    vessel_dnk_4 <-
-      left_join(vessel_dnk_3, locode[, c("start", "harbourEU")], by = c("bhavn" = "start"))
+      dplyr::left_join(vessel_dnk_1, locode[, c("start", "harbourEU")], by = c("bhavn" = "start"))
 
-    # Not DNK
+    ## Not DNK ----
+    # no info at the momemt
 
-    vessel_not_dnk_1 <- left_join(vessel_not_dnk, fl_ftj_id, by = c("platform1" = "platform"))
+    vessel_not_dnk_1 <- vessel_not_dnk
 
     # Combine DNK and not DNK
 
-    combined <- bind_rows(vessel_dnk_4, vessel_not_dnk_1)
+    dat_1 <- dplyr::bind_rows(vessel_dnk_2, vessel_not_dnk_1)
 
     # Add flagcountry
 
-    combined_1 <- left_join(combined, ctry, by = c("nationalityPlatform1" = "nationality"))
+    dat_2 <- dplyr::left_join(dat_1, ctry, by = c("nationalityPlatform1" = "nationality"))
 
-    test <- unique(combined_1[c("nationalityPlatform1", "ISO_3166_ices")])
+    # test <- unique(combined_1[c("nationalityPlatform1", "ISO_3166_ices")])
 
     # Recode for VD ----
 
-    vd <-
-      distinct(combined_1,
-               tripId,
-               platform1,
-               year,
-               Vessel_identifier_fid,
-               oal,
-               harbourEU,
-               kw,
-               bt,
-               brt,
-               ISO_3166_ices,
-               samplingType)
+    vd <- dat_2
 
     VDid <-
-      distinct(combined_1,
+      dplyr::distinct(vd,
                platform1,
-               Vessel_identifier_fid,
+               VDencryptedVesselCode,
                oal,
                harbourEU,
                kw,
-               bt,
-               brt)
+               btbrt)
 
     VDid$VDid <- c(1:nrow(VDid))
 
-    vd <- left_join(vd, VDid)
+    vd <- dplyr::left_join(vd, VDid)
     vd$VDrecordType <- "VD"
 
-    vd$VDencryptedVesselCode <- as.character(vd$Vessel_identifier_fid)
+    # Fix not known vessels and foreign
 
     vd$VDencryptedVesselCode[is.na(vd$VDencryptedVesselCode)] <-
       "DNK - Unknown vessel"
@@ -180,18 +144,16 @@ VD_fishline_2_rdbes <-
     vd$VDencryptedVesselCode[!(is.na(vd$ISO_3166_ices)) & vd$ISO_3166_ices != "DK"] <-
       paste0("DNK - ", vd$ISO_3166_ices[!(is.na(vd$ISO_3166_ices)) & vd$ISO_3166_ices != "DK"], " vessel")
 
-    distinct(vd, ISO_3166_ices, VDencryptedVesselCode)
+    # dplyr::distinct(vd, ISO_3166_ices, VDencryptedVesselCode)
 
     vd$VDyear <- vd$year
 
-    vd$VDcountry <- "DK"
+    vd$VDcountry <- "DK" # Not always TRUE, but this is not recorded
 
-    # vd$VDcountry <- vd$ISO_3166_ices
-    # vd$VDcountry[is.na(vd$Vessel_identifier_fid)] <- "DK"   # It is not possible to upload foreign vessels
     vd$VDhomePort <- vd$harbourEU
 
     vd$VDflagCountry <- vd$ISO_3166_ices
-    vd$VDflagCountry[is.na(vd$VDflagCountry) & vd$VDencryptedVesselCode == "DNK - Unknown vessel"] <- "DK"
+    vd$VDflagCountry[is.na(vd$VDflagCountry) & vd$VDencryptedVesselCode == "DNK - Unknown vessel"] <- "DK" # It is not possible to upload foreign vessels
 
     vd$VDlength <- round(vd$oal, digits = 2)
     vd$VDlengthCategory <- ifelse(vd$VDlength < 6,
@@ -226,40 +188,31 @@ VD_fishline_2_rdbes <-
 
     vd$VDlengthCategory[is.na(vd$VDlengthCategory)] <- "NK"
 
-    test_VDlenCat <- distinct(vd, VDlength, VDlengthCategory)
+    # test_VDlenCat <- dplyr::distinct(vd, VDlength, VDlengthCategory)
 
     vd$VDpower <- round(vd$kw, digits = 0)
-    vd$VDtonAge <-
-      round(vd$bt, digits = 0) #OBS needs to look at both bt and brt
+    vd$VDtonnage <-
+      round(vd$btbrt, digits = 0) #OBS needs to look at both bt and brt
     vd$VDtonUnit <- "GT"
-
-    if (type == "only_mandatory") {
-      vd_temp_optional <-
-        filter(data_model, substr(name, 1, 2) == "VD" & min == 0)
-      vd_temp_optional_t <-
-        factor(t(vd_temp_optional$name)[1:nrow(vd_temp_optional)])
-
-      for (i in levels(vd_temp_optional_t)) {
-        eval(parse(text = paste0("vd$", i, " <- NA")))
-
-      }
-    }
 
     vd_ok <- subset(vd, !is.na(VDencryptedVesselCode))
 
     vd_not_ok <- subset(vd, is.na(VDencryptedVesselCode) | VDencryptedVesselCode == "DNK - Unknown vessel")
 
     vd_not_ok <-
-      right_join(
-        select(tr, year, cruise, trip, tripId, samplingType),
-        select(vd_not_ok, tripId, platform1, VDencryptedVesselCode)
+      dplyr::right_join(
+        select(dat, year, cruise, trip, tripId, samplingType, platform1),
+        select(vd_not_ok, tripId, VDencryptedVesselCode)
       )
 
-    VD <- select(vd_ok, one_of(vd_temp_t), tripId)
+    # VD <- select(vd_ok, one_of(vd_temp_t), tripId)
 
-    VD$VDencryptedVesselCode[VD$VDencryptedVesselCode != "DNK - Unknown vessel"] <-
-      paste0(encrypter_prefix, VD$VDencryptedVesselCode[VD$VDencryptedVesselCode != "DNK - Unknown vessel"])
+    vd <- plyr::rbind.fill(VD, vd)
 
-    return(list(VD, vd_temp, vd_temp_t, vd_not_ok))
+    vd <- vd[ , c(names(VD), "tripId", "VDid")]
+
+    vd[is.na(vd) ] <- ""
+
+    return(list(vd, VD, vd_not_ok))
 
   }

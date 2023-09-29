@@ -25,17 +25,17 @@ VS_fishline_2_rdbes <-
            encryptedVesselCode_path = "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2022/output/for_production",
            sampling_scheme = "DNK_Market_Sampling",
            years = 2016,
-           type = "everything")
+           data_model_path)
   {
 
 
     # Input for testing ----
 
-    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    # encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/output/data_call_2022/for_production"
+    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
+    # encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/output/data_call_2022/for_production"
     # sampling_scheme = "DNK_AtSea_Observer_Active"
     # years <- 2021
-    # type <- "everything"
+    # data_model_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
 
     # Set-up ----
 
@@ -45,14 +45,14 @@ VS_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
+    # Get data model ----
+    VS <- get_data_model("Vessel Selection", data_model_path = data_model_path)
+
+    # Get link ----
     link <-
       read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
 
     link <- subset(link, DEsamplingScheme == sampling_scheme)
-
-    vs_temp <- filter(data_model, substr(name, 1, 2) == "VS")
-    vs_temp_t <- c("VSrecordType", t(vs_temp$name)[1:nrow(vs_temp)])
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
 
@@ -159,20 +159,13 @@ VS_fishline_2_rdbes <-
     # vs$VSsampled[vs$cruise %in% c("MON", "SEAS") & is.na(vs$numberOfHaulsOrSets)] <- 0
     vs$VSreasonNotSampled <- ""           #Reasoning requires manual coding
 
-    if (type == "only_mandatory") {
-      vs_temp_optional <-
-        filter(data_model, substr(name, 1, 2) == "VS" & min == 0)
-      vs_temp_optional_t <-
-        factor(t(vs_temp_optional$name)[1:nrow(vs_temp_optional)])
+    # Fill and select data ----
+    vs <- plyr::rbind.fill(VS, vs)
+    vs <- vs[ , c(names(VS), "tripId", "VSid")]
 
-      for (i in levels(vs_temp_optional_t)) {
-        eval(parse(text = paste0("vs$", i, " <- ''")))
 
-      }
-    }
+    vs[is.na(vs) ] <- ""
 
-    VS <- select(vs, one_of(vs_temp_t), tripId)
-
-    return(list(VS, vs_temp, vs_temp_t))
+    return(list(vs, VS))
 
   }
