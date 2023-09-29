@@ -25,19 +25,17 @@ VS_fishline_2_rdbes <-
            encryptedVesselCode_path = "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2022/output/for_production",
            sampling_scheme = "DNK_Market_Sampling",
            years = 2016,
-           type = "everything",
            data_model_path)
   {
 
 
     # Input for testing ----
 
-    ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
-    encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/output/data_call_2022/for_production"
-    sampling_scheme = "DNK_AtSea_Observer_Active"
-    years <- 2021
-    type <- "everything"
-    data_model_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
+    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
+    # encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/output/data_call_2022/for_production"
+    # sampling_scheme = "DNK_AtSea_Observer_Active"
+    # years <- 2021
+    # data_model_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
 
     # Set-up ----
 
