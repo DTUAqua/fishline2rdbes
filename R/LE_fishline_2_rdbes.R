@@ -41,7 +41,7 @@ LE_fishline_2_rdbes <-
     LE <- get_data_model("Landing event")
 
 
-    link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+    link <- read.csv(ref_path)
     link <- subset(link, DEsamplingScheme == sampling_scheme)
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
@@ -82,17 +82,12 @@ LE_fishline_2_rdbes <-
 
     # Get encryptedVesselCode
 
-    encryptedVesselCode <-
-      read.csv(paste0(
-        encryptedVesselCode_path,
-        "/DNK_",
-        min(years),
-        "_",
-        max(years),
-        "_HVD.csv"
-      ),
-      sep = ";"
-      )
+    encryptedVesselCode <- read.csv2("Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production/DNK_2022_2022_HVD.csv")
+    encryptedVesselCode <- encryptedVesselCode[encryptedVesselCode$tripId %in% samp$tripId,
+                                               c("tripId", "VDencryptedVesselCode")]
+
+    samp <- merge(samp, encryptedVesselCode, by = "tripId", all.x = T)
+    samp$LEencryptedVesselCode <- samp$VDencryptedVesselCode
 
     # Get LOCODE's for arrival / departure location
 
@@ -113,18 +108,10 @@ LE_fishline_2_rdbes <-
 
     le <- left_join(samp, area, by = c("dfuArea" = "DFUArea"))
 
-    # encryptedVesselCode
-
-    le_1 <-
-      left_join(
-        le,
-        select(encryptedVesselCode, tripId, VDencryptedVesselCode)
-      )
-
     # arrivalLocation
 
     le_1 <-
-      left_join(le_1, locode, by = c("harbourLanding" = "harbour"))
+      left_join(le, locode, by = c("harbourLanding" = "harbour"))
 
 
     # Recode for FO ----
@@ -133,8 +120,6 @@ LE_fishline_2_rdbes <-
 
     le$LEid <- le$sampleId
     le$LErecordType <- "LE"
-
-    le$LEencryptedVesselCode <- le$VDencryptedVesselCode
 
     le$LEmixedTrip[le$samplingType == "D" |
       is.na(le$samplingType)] <- "Y"

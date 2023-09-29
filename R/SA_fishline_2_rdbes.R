@@ -40,7 +40,7 @@ SA_fishline_2_rdbes <-
     #data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
     SA <- get_data_model("Sample")
 
-    link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+    link <- read.csv(ref_path)
     link <- subset(link, DEsamplingScheme == sampling_scheme)
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
@@ -294,6 +294,7 @@ SA_fishline_2_rdbes <-
     sa$SAreasonNotSampledFM <- "Unknown"
     sa$SAreasonNotSampledBV <- "Unknown"
 
+    sa$SAsex[sa$SAsex == FALSE] <- "F"
     sa <- plyr::rbind.fill(SA, sa)
     sa <- sa[ , c(names(SA), "SAstateOfProcessing", "speciesListId", "sampleId", "SAid", "year")]
 
