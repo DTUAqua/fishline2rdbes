@@ -45,9 +45,7 @@ TE_fishline_2_rdbes <-
     #data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
     TE <- get_data_model("Temporal Event")
 
-    data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
-
-    link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+    link <- read.csv(ref_path)
     link <- subset(link, DEsamplingScheme == sampling_scheme)
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
