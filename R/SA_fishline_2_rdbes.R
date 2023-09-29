@@ -19,32 +19,29 @@
 SA_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
            sampling_scheme = "DNK_Market_Sampling",
-           years = 2016,
-           type = "everything") {
+           years = 2016) {
     # Input for testing ----
 
-    ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    years <- c(2021)
-    sampling_scheme <- "DNK_AtSea_Observer_Active"
-    type <- "everything"
+    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
+    # years <- c(2021)
+    # sampling_scheme <- "DNK_AtSea_Observer_Active"
 
     # Set-up ----
 
 
     library(sqldf)
     library(tidyr)
+    library(plyr, include.only = c("rbind.fill"))
     library(dplyr)
     library(stringr)
     library(haven)
+    library(lubridate)
 
-    data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
-    link <-
-      read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+    #data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
+    SA <- get_data_model("Sample")
 
+    link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
     link <- subset(link, DEsamplingScheme == sampling_scheme)
-
-    sa_temp <- filter(data_model, substr(name, 1, 2) == "SA")
-    sa_temp_t <- c("SArecordType", t(sa_temp$name)[1:nrow(sa_temp)])
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
 
@@ -57,9 +54,9 @@ SA_fishline_2_rdbes <-
       paste(
         "SELECT specieslist.*, Animal.animalId, Animal.individNum,
                   Animal.representative, Animal.number as ani_number
-                  FROM SpeciesList INNER JOIN
-                  Sample ON SpeciesList.sampleId = Sample.sampleId LEFT OUTER JOIN
-                  Animal ON SpeciesList.speciesListId = Animal.speciesListId
+                  FROM FishLineDW.dbo.SpeciesList INNER JOIN
+                  FishLineDW.dbo.Sample ON SpeciesList.sampleId = Sample.sampleId LEFT OUTER JOIN
+                  FishLineDW.dbo.Animal ON SpeciesList.speciesListId = Animal.speciesListId
          WHERE (Specieslist.year between ",
         min(years),
         " and ",
@@ -73,12 +70,13 @@ SA_fishline_2_rdbes <-
     )
     close(channel)
 
+    samp$dateGearStart <- force_tz(samp$dateGearStart, tzone = "UTC")
     samp <- subset(samp, !(is.na(dfuArea)))
 
     channel <- odbcConnect("FishLine")
     area <- sqlQuery(
       channel,
-      paste("SELECT DFUArea, areaICES FROM L_DFUArea",
+      paste("SELECT DFUArea, areaICES FROM FishLine.dbo.L_DFUArea",
         sep = ""
       )
     )
@@ -86,7 +84,7 @@ SA_fishline_2_rdbes <-
       sqlQuery(
         channel,
         paste(
-          "select speciesCode, latin, speciesFAO, aphiaID FROM dbo.L_species"
+          "select speciesCode, latin, speciesFAO, aphiaID FROM FishLine.dbo.L_species"
         )
       )
     close(channel)
@@ -98,12 +96,10 @@ SA_fishline_2_rdbes <-
     sa <- left_join(samp, area, by = c("dfuArea" = "DFUArea"))
     sa <- left_join(sa, art)
 
-    no_latin <-
-      distinct(filter(sa, is.na(latin)), speciesCode)
+    no_latin <- distinct(filter(sa, is.na(latin)), speciesCode)
 
     # Delete all none species
-    sa <-
-      filter(sa, !(is.na(latin)) &
+    sa <- filter(sa, !(is.na(latin)) &
                !(speciesCode %in% c("INV")) & !is.na(aphiaID))
 
     # Identify lower hierachy
@@ -177,9 +173,7 @@ SA_fishline_2_rdbes <-
     sa$SArecordType <- "SA"
 
     sa <- arrange(sa, sampleId, speciesListId)
-    sa$SAsequenceNumber <- NA
 
-    sa$SAparentSequenceNumber <- ""
     sa$SAstratification <- "Y"
 
     sa <-
@@ -244,16 +238,11 @@ SA_fishline_2_rdbes <-
     sa$SAcommSizeCat[sa$SAcommSizeCat == "123"] <- "3"
     sa <- mutate(sa, SAsex = ifelse(is.na(sexCode), "U", as.character(sexCode)))
 
-    sa$SAexclusiveEconomicZoneIndicator <- ""
-
     sa$SAarea <- sa$areaICES
     sa$SArectangle <- sa$statisticalRectangle
     sa$SArectangle[is.na(sa$SArectangle)] <- ""
     sa$SAgsaSubarea <- "NotApplicable"
-    sa$SAjurisdictionArea <- ""
 
-    sa$SAnationalFishingActivity <- ""
-    sa$SAmetier5 <- ""
     sa$SAmetier6 <- "MIS_MIS_0_0_0"
     sa$SAgear <- sa$gearType
     sa$SAgear[is.na(sa$SAgear)] <- "MIS"
@@ -262,8 +251,6 @@ SA_fishline_2_rdbes <-
     sa$SAgear[sa$gearType == "FIX"] <- "FPO"
     sa$SAgear[sa$gearType == "LHP"] <- "LHM"
     sa$SAmeshSize <- sa$meshSize
-    sa$SAselectionDevice <- ""
-    sa$SAselectionDeviceMeshSize <- ""
 
     sa <-
       transform(
@@ -295,16 +282,7 @@ SA_fishline_2_rdbes <-
 
     sa$SAsampler <- "Observer" # sa$samplingMethod # That is not completely TRUE
 
-    sa$SAnumberTotal <-
-      "" # To be coded manual - depends on design
-    sa$SAnumberSampled <-
-      "" # To be coded manual - depends on design
-    sa$SAselectionProb <-
-      "" # To be coded manual - depends on design
-    sa$SAinclusionProb <-
-      "" # To be coded manual - depends on design
-    sa$SAselectionMethod <-
-      "NPQSRSWOR"
+    sa$SAselectionMethod <- "NPQSRSWOR"
 
     sa$SAunitName <- paste(sa$speciesListId, sa$cruise, sa$trip, sa$station, sa$speciesCode, sa$landingCategory, sa$sizeSortingEU, sep = "-")
 
@@ -313,28 +291,13 @@ SA_fishline_2_rdbes <-
     # SAlowerHierarchy coded before
 
     sa$SAsampled <- "Y"
-    sa$SAreasonNotSampled <- ""
     sa$SAreasonNotSampledFM <- "Unknown"
     sa$SAreasonNotSampledBV <- "Unknown"
 
-    # For now only including Y - N requires manual coding
-    # Should be 0, but that is not possible at the moment
-    # sa$SAsampled[ft$cruise %in% c("MON", "SEAS") & is.na(ft$numberOfHaulsOrSets)] <- 0
+    sa <- plyr::rbind.fill(SA, sa)
+    sa <- sa[ , c(names(SA), "SAstateOfProcessing", "speciesListId", "sampleId", "SAid", "year")]
 
+    sa <- unique(sa) #remove pr fish information and stick to by sample
 
-    if (type == "only_mandatory") {
-      sa_temp_optional <-
-        filter(data_model, substr(name, 1, 2) == "SA" & min == 0)
-      sa_temp_optional_t <-
-        factor(t(sa_temp_optional$name)[1:nrow(sa_temp_optional)])
-
-      for (i in levels(sa_temp_optional_t)) {
-        eval(parse(text = paste0("sa$", i, " <- ''")))
-      }
-    }
-
-    SA <-
-      distinct(select(sa, one_of(sa_temp_t), speciesListId, sampleId, SAid, year))
-
-    return(list(SA, sa_temp, sa_temp_t))
+    return(list(sa, SA))
   }

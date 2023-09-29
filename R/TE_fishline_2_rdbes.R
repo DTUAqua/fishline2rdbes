@@ -21,12 +21,9 @@
 #'
 
 TE_fishline_2_rdbes <-
-  function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
+  function(ref_path = "Q:/mynd/kibi/RDBES/create_RDBES_data/references",
            sampling_scheme = "DNK_Market_Sampling",
-           years = 2016,
-           type = "everything"
-           )
-  {
+           years = 2016){
 
 
     # Input for testing ----
@@ -34,23 +31,24 @@ TE_fishline_2_rdbes <-
     # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
     # sampling_scheme <- "DNK_Market_Sampling"
     # years <- c(2021)
-    # type <- "everything"
 
     # Set-up ----
 
     library(RODBC)
     library(sqldf)
+    library(plyr, include.only = c("rbind.fill"))
     library(dplyr)
     library(stringr)
     library(haven)
+    library(lubridate)
+
+    #data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
+    TE <- get_data_model("Temporal Event")
 
     data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
+
     link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
-
     link <- subset(link, DEsamplingScheme == sampling_scheme)
-
-    te_temp <- filter(data_model, substr(name, 1, 2) == "TE")
-    te_temp_t <- c("TErecordType", t(te_temp$name)[1:nrow(te_temp)])
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
 
@@ -61,7 +59,7 @@ TE_fishline_2_rdbes <-
     tr <- sqlQuery(
       channel,
       paste(
-        "select * FROM dbo.Trip
+        "select * FROM FishLineDW.dbo.Trip
          WHERE (Trip.year between ", min(years), " and ", max(years) , ")
                 and Trip.tripId in (", paste(trips, collapse = ","),
         ")",
@@ -69,6 +67,9 @@ TE_fishline_2_rdbes <-
       )
     )
     close(channel)
+
+    tr$dateEnd <- force_tz(tr$dateEnd, tzone = "UTC")
+    tr$dateSample <- force_tz(tr$dateSample, tzone = "UTC")
 
     test <- distinct(tr, dateSample, dateStart, dateEnd)
 
@@ -87,40 +88,18 @@ TE_fishline_2_rdbes <-
 
     te$TEtimeUnit <- "Day"  # Not totally true, since some
 
-    te$TEsequenceNumber <- NA   # To be coded after join with DE and SD
     te$TEclustering <- "N"      # Not used in this scheme
     te$TEclusterName <- "No"    # Not used in this scheme
 
     te$TEsampler <-  "Observer" #te$samplingMethod # DTU Aqua selects the location
 
-    te$TEselectionProb <- ""    # Not included for this scheme
-    te$TEinclusionProb <- ""    # Not included for this scheme
-
-    te$TEunitName <- te$dateSample
-
-    te$TEselectionMethodCluster <- ""  # Not used in this scheme
-    te$TEnumberTotalClusters <- ""     # Not used in this scheme
-    te$TEnumberSampledClusters <- ""   # Not used in this scheme
-    te$TEselectionProbCluster <- ""    # Not used in this scheme
-    te$TEinclusionProbCluster <- ""    # Not used in this scheme
+    te$TEunitName <- as.character(as.Date(te$dateSample))
 
     te$TEsampled <- "Y"
-    te$TEreasonNotSampled <- ""           # No non-responses, but we have NULL samples in our DB
 
-    if (type == "only_mandatory") {
-      te_temp_optional <-
-        filter(data_model, substr(name, 1, 2) == "TE" & min == 0)
-      te_temp_optional_t <-
-        factor(t(te_temp_optional$name)[1:nrow(te_temp_optional)])
+    te <- plyr::rbind.fill(TE, te)
+    te <- te[ , c(names(TE), "tripId", "TEid")]
 
-      for (i in levels(te_temp_optional_t)) {
-        eval(parse(text = paste0("te$", i, " <- ''")))
-
-      }
-    }
-
-    TE <- select(te, one_of(te_temp_t), tripId, TEid)
-
-    return(list(TE, te_temp, te_temp_t))
+    return(list(te, TE))
 
   }
