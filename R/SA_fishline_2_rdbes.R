@@ -19,7 +19,8 @@
 SA_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
            sampling_scheme = "DNK_Market_Sampling",
-           years = 2016) {
+           years = 2016,
+           data_model_path) {
     # Input for testing ----
 
     # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
@@ -38,7 +39,7 @@ SA_fishline_2_rdbes <-
     library(lubridate)
 
     #data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
-    SA <- get_data_model("Sample")
+    SA <- get_data_model("Sample", data_model_path = data_model_path)
 
     link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
     link <- subset(link, DEsamplingScheme == sampling_scheme)

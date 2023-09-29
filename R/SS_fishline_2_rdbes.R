@@ -25,7 +25,8 @@ SS_fishline_2_rdbes <-
            sampling_scheme = "DNK_Market_Sampling",
            years = 2016,
            xx = "observer at-sea",
-           specieslist_name = "DNK_Market_Sampling_2021"){
+           specieslist_name = "DNK_Market_Sampling_2021",
+           data_model_path){
 
 
     # Input for testing ----
@@ -47,9 +48,8 @@ SS_fishline_2_rdbes <-
     library(lubridate)
 
     #data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
-    SS <- get_data_model("Species Selection")
+    SS <- get_data_model("Species Selection", data_model_path = data_model_path)
 
-    data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
     link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
     link <- subset(link, DEsamplingScheme == sampling_scheme)
 
