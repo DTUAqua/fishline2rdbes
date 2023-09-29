@@ -24,17 +24,20 @@ FT_fishline_2_rdbes <-
            encryptedVesselCode_path = "Q:/mynd/RDB/create_RDBES_data/RDBES_data_call_2021/output/for_production",
            years = 2016,
            sampling_scheme = "DNK_AtSea_Observer_Active",
-           type = "everything")
+           data_model_path = )
   {
 
 
     # Input for testing ----
 
-# ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-# encryptedVesselCode_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/output/data_call_2022/for_production"
-# years <- 2021
-# sampling_scheme <- "DNK_AtSea_Observer_Active"
-# type <- "everything"
+
+    ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
+    encryptedVesselCode_path <-
+      "Q:/mynd/kibi/RDBES/create_RDBES_data_old/output/data_call_2022/for_production"
+    years <- 2021
+    sampling_scheme <- "DNK_AtSea_Observer_Active"
+    data_model_path <-
+      "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
 
     # Set-up ----
 
@@ -44,14 +47,13 @@ FT_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
+    # Get data model ----
+    FT <-
+      get_data_model("Fishing Trip", data_model_path = data_model_path)
+
+    # Get link ----
     link <-
       read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
-
-    link <- subset(link, DEsamplingScheme == sampling_scheme)
-
-    ft_temp <- filter(data_model, substr(name, 1, 2) == "FT")
-    ft_temp_t <- c("FTrecordType", t(ft_temp$name)[1:nrow(ft_temp)])
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
 
@@ -206,20 +208,12 @@ FT_fishline_2_rdbes <-
     ft$FTreasonNotSampled <- ""
     # ft$FTreasonNotSampled[ft$numberOfHaulsOrSets == "0"] <- "Other"
 
-    if (type == "only_mandatory") {
-      ft_temp_optional <-
-        filter(data_model, substr(name, 1, 2) == "FT" & min == 0)
-      ft_temp_optional_t <-
-        factor(t(ft_temp_optional$name)[1:nrow(ft_temp_optional)])
+    # Fill and select data ----
+    ft <- plyr::rbind.fill(FT, ft)
+    ft <- ft[ , c(names(FT), "tripId", "FTid", "year", "dateEnd")]
 
-      for (i in levels(ft_temp_optional_t)) {
-        eval(parse(text = paste0("ft$", i, " <- ''")))
+    vs[is.na(vs) ] <- ""
 
-      }
-    }
-
-    FT <- select(ft, one_of(ft_temp_t), tripId, FTid, year, dateEnd)
-
-    return(list(FT, ft_temp, ft_temp_t))
+    return(list(ft, FT))
 
   }

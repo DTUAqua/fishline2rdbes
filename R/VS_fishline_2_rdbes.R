@@ -159,7 +159,7 @@ VS_fishline_2_rdbes <-
     # vs$VSsampled[vs$cruise %in% c("MON", "SEAS") & is.na(vs$numberOfHaulsOrSets)] <- 0
     vs$VSreasonNotSampled <- ""           #Reasoning requires manual coding
 
-    # Fill and select data
+    # Fill and select data ----
     vs <- plyr::rbind.fill(VS, vs)
     vs <- vs[ , c(names(VS), "tripId", "VSid")]
 
