@@ -50,11 +50,8 @@ SS_fishline_2_rdbes <-
     #data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
     SS <- get_data_model("Species Selection", data_model_path = data_model_path)
 
-<<<<<<< HEAD
-    link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
-=======
+
     link <- read.csv(ref_path)
->>>>>>> 4f23de89343e38c849e60866d3fb63c81bb3a7a6
     link <- subset(link, DEsamplingScheme == sampling_scheme)
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
