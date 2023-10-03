@@ -12,12 +12,12 @@
 get_data_model <- function(table_name, data_model_path, data_model_version = "v1_19_18") {
   ## datamodel
 
-  nam <- data.frame(name = c("Design", "Location", "Temporal Event",
+  nam <- data.frame(name = c("Design", "Location", "Sampling Details", "Temporal Event",
                              "Vessel Selection", "Fishing Trip",
                              "Fishing Operation",
                              "Species Selection",  "Landing event", "Sample",
                              "Frequency Measure", "Biological Variable"),
-                    code = c("DE", "LO", "TE", "VS", "FT", "FO", "SS", "LE", "SA", "FM", "BV"))
+                    code = c("DE", "LO", "SD", "TE", "VS", "FT", "FO", "SS", "LE", "SA", "FM", "BV"))
 
   if (! table_name %in% nam$name){
     print("Table Name Not Found In CS Design Model")
