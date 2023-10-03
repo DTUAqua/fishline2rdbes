@@ -54,6 +54,8 @@ FT_fishline_2_rdbes <-
     # Get link ----
     link <- read.csv(ref_path)
 
+    link <- subset(link, DEsamplingScheme == sampling_scheme)
+
     trips <- unique(link$tripId[!is.na(link$tripId)])
 
     # Get needed stuff ----
