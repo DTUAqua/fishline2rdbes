@@ -31,10 +31,10 @@ FT_fishline_2_rdbes <-
     # Input for testing ----
 
 
-    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
+    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2022.csv"
     # encryptedVesselCode_path <-
-    #   "Q:/mynd/kibi/RDBES/create_RDBES_data_old/output/data_call_2022/for_production"
-    # years <- 2021
+    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production"
+    # years <- 2022
     # sampling_scheme <- "DNK_AtSea_Observer_Active"
     # data_model_path <-
     #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
