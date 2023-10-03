@@ -31,13 +31,13 @@ FT_fishline_2_rdbes <-
     # Input for testing ----
 
 
-    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2022.csv"
-    # encryptedVesselCode_path <-
-    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production"
-    # years <- 2022
-    # sampling_scheme <- "DNK_AtSea_Observer_Active"
-    # data_model_path <-
-    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
+    ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2022.csv"
+    encryptedVesselCode_path <-
+      "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production"
+    years <- 2022
+    sampling_scheme <- "DNK_AtSea_Observer_Active"
+    data_model_path <-
+      "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
 
     # Set-up ----
 
@@ -185,14 +185,14 @@ FT_fishline_2_rdbes <-
 
 
     ft$FTdepartureLocation <- "DK999" # Don't have this in FishLine - need to get from DFAD - later!
-    ft$FTdepartureDate <- as.Date(ft$dateStart)
-    ft$FTdepartureTime <- strftime(ft$dateStart, format = "%H:%M")
+    ft$FTdepartureDate <- as.character(as.Date(ft$dateStart))
+    ft$FTdepartureTime <- as.character(strftime(ft$dateStart, format = "%H:%M"))
 
     ft$FTarrivalLocation <- ft$arrivalLocation
     ft$FTarrivalLocation[is.na(ft$FTarrivalLocation)] <- "DK999"
 
-    ft$FTarrivalDate <- as.Date(ft$dateEnd)
-    ft$FTarrivalTime <- strftime(ft$dateEnd, format = "%H:%M")
+    ft$FTarrivalDate <- as.character(as.Date(ft$dateEnd))
+    ft$FTarrivalTime <- as.character(strftime(ft$dateEnd, format = "%H:%M"))
 
     ft$FTunitName <- paste(ft$cruise, ft$trip, sep = "-")
 
@@ -211,7 +211,9 @@ FT_fishline_2_rdbes <-
     ft <- plyr::rbind.fill(FT, ft)
     ft <- ft[ , c(names(FT), "tripId", "FTid", "year", "dateEnd")]
 
-    ft[is.na(ft) ] <- ""
+    ft$dateEnd <- as.character(ft$dateEnd)
+
+    ft[is.na(ft)] <- ""
 
     return(list(ft, FT))
 
