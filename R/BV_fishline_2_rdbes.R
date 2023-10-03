@@ -42,7 +42,7 @@ BV_fishline_2_rdbes <-
     #data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
     BV <- get_data_model("Biological Variable", data_model_path = data_model_path)
 
-    link <- read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+    link <- read.csv(ref_path)
     link <- subset(link, DEsamplingScheme == sampling_scheme)
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
@@ -99,8 +99,8 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
                                    "maturityIndex", "age", "genetics"),
                       value = c("", "lengthMeasureUnit", "treatmentFactor",
                                 "maturityIndexMethod", "otolithReadingRemark", ""),
-                      BVvalueUnitOrScale = c("Sex", "Lengthmm", "Weightg", "SMSF", "Ageyear", ""),
-                      BVmethod = c("", "", "", "gonad", "Otoltih", ""),
+                      BVvalueUnitOrScale = c("Sex", "Lengthmm", "Weightg", "SMSF", "Ageyear", "NotApplicable"),
+                      BVmethod = c("", "", "", "gonad", "otolith", ""),
                       BVtypeMeasured = c("Sex", "LengthTotal", "WeightMeasured",
                                          "Maturity", "Age", "InfoGenetic"),
                       BVtypeAssessment = c("Sex", "LengthTotal", "WeightLive",
