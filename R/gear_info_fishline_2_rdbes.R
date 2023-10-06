@@ -40,6 +40,7 @@ gear_info_fishline_2_rdbes <-
     library(purrr)
     library(openxlsx)
     library(dplyr)
+    library(RODBC)
 
     # Get references ----
 
