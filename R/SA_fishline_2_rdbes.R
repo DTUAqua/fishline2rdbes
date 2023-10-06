@@ -23,9 +23,11 @@ SA_fishline_2_rdbes <-
            data_model_path) {
     # Input for testing ----
 
-    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
-    # years <- c(2021)
+    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2022.csv"
+    # years <- 2022
     # sampling_scheme <- "DNK_AtSea_Observer_Active"
+    # data_model_path <-
+    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
 
     # Set-up ----
 
@@ -136,12 +138,12 @@ SA_fishline_2_rdbes <-
     test <- subset(sa, is.na(animalId))
 
     lh_1 <-
-      summarise(group_by(subset(sa,!is.na(individNum)), speciesListId, representative),
+      dplyr::summarise(group_by(subset(sa,!is.na(individNum)), speciesListId, representative),
                 no_indi = length(unique(individNum)))
 
 
     lh_num_sum <-
-      summarise(group_by(subset(sa, representative == "ja"), speciesListId),
+      dplyr::summarise(group_by(subset(sa, representative == "ja"), speciesListId),
                 no_fish = sum(ani_number, na.rm = T))
 
     lh_1_num <- full_join(lh_1, lh_num_sum)
