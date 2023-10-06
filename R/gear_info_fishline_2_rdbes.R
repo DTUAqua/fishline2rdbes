@@ -32,6 +32,7 @@
 gear_info_fishline_2_rdbes <-
   function(df = samp,
            record_type,
+           ices_area_already_addded = T,
            checks = T) {
 
     library(purrr)
@@ -121,18 +122,27 @@ gear_info_fishline_2_rdbes <-
 
     print("Adding RCG region")
 
-    channel <- RODBC::odbcConnect("FishLine")
-    area <- RODBC::sqlQuery(channel,
-                     paste("SELECT DFUArea, areaICES FROM L_DFUArea",
-                           sep = ""))
-    close(channel)
+    if (ices_area_already_addded == T) {
 
-    df_1 <- left_join(df, area, by = c("dfuArea" = "DFUArea"))
-
-    if (checks == T) {
-      print(paste("Before join with L_DFUArea: ", nrow(df)))
-      print(paste("After join with L_DFUArea: ", nrow(df_1)))
+      df_1 <- df
     }
+
+    if (ices_area_already_addded == F) {
+
+      channel <- RODBC::odbcConnect("FishLine")
+      area <- RODBC::sqlQuery(channel,
+                              paste("SELECT DFUArea, areaICES FROM L_DFUArea",
+                                    sep = ""))
+      close(channel)
+
+      df_1 <- left_join(df, area, by = c("dfuArea" = "DFUArea"))
+
+      if (checks == T) {
+        print(paste("Before join with L_DFUArea: ", nrow(df)))
+        print(paste("After join with L_DFUArea: ", nrow(df_1)))
+      }
+    }
+
 
     df_1 <- dplyr::rename(df_1, "area" = "areaICES")
 
