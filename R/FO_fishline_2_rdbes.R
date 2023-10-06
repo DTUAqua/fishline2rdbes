@@ -27,11 +27,11 @@ FO_fishline_2_rdbes <-
            data_model_path) {
     # Input for testing ----
 
-    ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
-    years <- 2021
-    sampling_scheme <- "DNK_AtSea_Observer_Active"
-    data_model_path <-
-      "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
+    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
+    # years <- 2021
+    # sampling_scheme <- "DNK_AtSea_Observer_Active"
+    # data_model_path <-
+    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
 
     # Set-up ----
 
