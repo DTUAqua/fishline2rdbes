@@ -32,8 +32,8 @@
 gear_info_fishline_2_rdbes <-
   function(df = samp,
            record_type,
-           ices_area_already_addded = T,
-           checks = T) {
+           ices_area_already_addded = F,
+           checks = F) {
 
     library(purrr)
     library(data.table)
@@ -322,7 +322,7 @@ gear_info_fishline_2_rdbes <-
                   "incidentalByCatchMitigationDeviceTargetSecond",
                   "gearDimensions")
 
-    names(dat)[names(dat) %in% gear_var] <- paste0(record_type, gear_var)
+    names(dat)[names(dat) %in% gear_var] <- paste0(record_type, names(dat)[names(dat) %in% gear_var])
 
     names(dat)
 
