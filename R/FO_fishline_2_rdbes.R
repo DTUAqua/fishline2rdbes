@@ -27,11 +27,13 @@ FO_fishline_2_rdbes <-
            data_model_path) {
     # Input for testing ----
 
-    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
-    # years <- 2021
-    # sampling_scheme <- "DNK_AtSea_Observer_Active"
-    # data_model_path <-
-    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
+    ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2022.csv"
+    encryptedVesselCode_path <-
+      "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production"
+    years <- 2022
+    sampling_scheme <- "DNK_AtSea_Observer_Active"
+    data_model_path <-
+      "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
 
     # Set-up ----
 
@@ -219,28 +221,30 @@ FO_fishline_2_rdbes <-
 
     fo$FOwaterDepth <- ""
 
-    fo$FOnationalFishingActivity <- ""
-    fo$FOmetier5 <- ""
-    fo$FOmetier6 <- "MIS_MIS_0_0_0"
-    fo$FOgear <- fo$gearType
-    fo$FOgear[is.na(fo$FOgear)] <- "MIS"
-    fo$FOgear[fo$gearType == "LL"] <- "LLS"
-    fo$FOgear[fo$gearType == "TBN"] <- "OTB"
-    fo$FOgear[fo$gearType == "FIX"] <- "FPO"
-    fo$FOgear[fo$gearType == "LHP"] <- "LHM"
-    fo$FOmeshSize <- fo$meshSize
-    fo$FOselectionDevice <- ""
-    fo$FOselectionDeviceMeshSize <- ""
-    fo$FOtargetSpecies <- ""
+    fo <- gear_info_fishline_2_rdbes(fo, record_type = "FO", ices_area_already_addded = T, checks = F)
 
-    fo$FOincidentalByCatchMitigationDeviceFirst <- "NotRecorded"
-    fo$FOincidentalByCatchMitigationDeviceTargetFirst <-
-      "NotApplicable"
-    fo$FOincidentalByCatchMitigationDeviceSecond <- "NotRecorded"
-    fo$FOincidentalByCatchMitigationDeviceTargetSecond <-
-      "NotApplicable"
-
-    fo$FOgearDimensions <- ""
+    # fo$FOnationalFishingActivity <- ""
+    # fo$FOmetier5 <- ""
+    # fo$FOmetier6 <- "MIS_MIS_0_0_0"
+    # fo$FOgear <- fo$gearType
+    # fo$FOgear[is.na(fo$FOgear)] <- "MIS"
+    # fo$FOgear[fo$gearType == "LL"] <- "LLS"
+    # fo$FOgear[fo$gearType == "TBN"] <- "OTB"
+    # fo$FOgear[fo$gearType == "FIX"] <- "FPO"
+    # fo$FOgear[fo$gearType == "LHP"] <- "LHM"
+    # fo$FOmeshSize <- fo$meshSize
+    # fo$FOselectionDevice <- ""
+    # fo$FOselectionDeviceMeshSize <- ""
+    # fo$FOtargetSpecies <- ""
+    #
+    # fo$FOincidentalByCatchMitigationDeviceFirst <- "NotRecorded"
+    # fo$FOincidentalByCatchMitigationDeviceTargetFirst <-
+    #   "NotApplicable"
+    # fo$FOincidentalByCatchMitigationDeviceSecond <- "NotRecorded"
+    # fo$FOincidentalByCatchMitigationDeviceTargetSecond <-
+    #   "NotApplicable"
+    #
+    # fo$FOgearDimensions <- ""
 
     fo$FOobservationCode <- "So"
 
