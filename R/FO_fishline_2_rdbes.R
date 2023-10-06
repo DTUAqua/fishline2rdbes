@@ -211,6 +211,7 @@ FO_fishline_2_rdbes <-
     fo$FOexclusiveEconomicZoneIndicator <- ""
 
     fo$FOarea <- fo$areaICES
+    fo$FOarea[is.na(fo$FOarea) & fo$dfuArea == "4L"] <- "27.4.b"
     fo$FOrectangle <- fo$statisticalRectangle
     fo$FOrectangle[is.na(fo$FOrectangle)] <- ""
     fo$FOgsaSubarea <- "NotApplicable"
