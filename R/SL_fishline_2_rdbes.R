@@ -17,19 +17,22 @@ SL_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
            sampling_scheme = "DNK_Market_Sampling",
            years = 2016,
+           data_model_path,
            basis_years = c(2016:2020),
            catch_fractions = c("Dis", "Lan"),
            specieslist_name = "DNK_AtSea_Observer_all_species_same_Dis_Lan",
-           species_to_add = c(148776, 137117),
-           type = "everything") {
+           species_to_add = c(148776, 137117)) {
     # Input for testing ----
 
-    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
-    # samplingScheme <- "DNK_Market_Sampling"
-    # years <- c(2021)
-    # type <- "everything"
+    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2022.csv"
+    # encryptedVesselCode_path <-
+    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production"
+    # years <- 2022
+    # sampling_scheme <- "DNK_AtSea_Observer_Active"
+    # data_model_path <-
+    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
     # basis_years <-  c(2016:2020)
-    # catch_fractions <- c("Lan")
+    # catch_fractions <- c("Dis", "Lan")
     # specieslist_name <- "DNK_AtSea_Observer_all_species_Dis_Lan"
     # species_to_add <- c(148776, 137117)
     # type <- "everything"
@@ -41,16 +44,13 @@ SL_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    data_model <-
-      readRDS(paste0(ref_path, "/BaseTypes.rds"))
+    SL <-
+      get_data_model_vd_sl("Species List Details", data_model_path = data_model_path)
 
-    link <-
-      read.csv(paste0(ref_path, "/link_fishLine_sampling_designs.csv"))
+    # Get link ----
+    link <- read.csv(ref_path)
 
     link <- subset(link, DEsamplingScheme == sampling_scheme)
-
-    sl_temp <- filter(data_model, substr(name, 1, 2) == "SL")
-    sl_temp_t <- c("SLrecordType", t(sl_temp$name)[1:nrow(sl_temp)])
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
 
@@ -132,18 +132,11 @@ SL_fishline_2_rdbes <-
     id <- distinct(ungroup(sl), SLspeciesListName)
     sl$SLid <- row.names(id)
 
-    if (type == "only_mandatory") {
-      sl_temp_optional <-
-        filter(data_model, substr(name, 1, 2) == "SL" & min == 0)
-      sl_temp_optional_t <-
-        factor(t(sl_temp_optional$name)[1:nrow(sl_temp_optional)])
+    # sl <- plyr::rbind.fill(SL, sl)
+    sl <- distinct(select(ungroup(sl), one_of(names(SL)), SLid))
 
-      for (i in levels(sl_temp_optional_t)) {
-        eval(parse(text = paste0("sl$", i, " <- NA")))
-      }
-    }
+    sl[is.na(sl) ] <- ""
 
-    SL <- distinct(select(ungroup(sl), one_of(sl_temp_t), SLid))
 
-    return(list(SL, sl_temp, sl_temp_t))
+    return(list(sl, SL))
   }
