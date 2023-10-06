@@ -30,13 +30,16 @@
 
 
 gear_info_fishline_2_rdbes <-
-  function(df = samp, checks = T) {
+  function(df = samp,
+           record_type,
+           checks = T) {
 
     library(purrr)
     library(data.table)
     library(stringr)
     library(purrr)
     library(openxlsx)
+    library(dplyr)
 
     # Get references ----
 
@@ -291,13 +294,27 @@ gear_info_fishline_2_rdbes <-
       "" # TO DO - we have the info in the observer programs for the active gears
     dat$selectionDeviceMeshSize <- "" # Same as above
     # # targetSpecies <-
-    # # MitigationDevice is not recorded for now, but will come for gillnets in the future
+    # dat$MitigationDevice <- ""#is not recorded for now, but will come for gillnets in the future
     dat$incidentalByCatchMitigationDeviceFirst <-
       "NotRecorded" #This is T for now
     dat$incidentalByCatchMitigationDeviceTargetFirst <- "NotApplicable"
     dat$incidentalByCatchMitigationDeviceSecond <- "NotRecorded"
     dat$incidentalByCatchMitigationDeviceTargetSecond <- "NotApplicable"
-    # dat$gearDimensions <- dat$numNets * dat$lengthNets
+    dat$gearDimensions <- dat$numNets * dat$lengthNets
+
+    gear_var <- c("nationalFishingActivity","metier5", "metier6", "gear",
+                  "meshSize", "selectionDevice", "selectionDeviceMeshSize",
+                  "targetSpecies",
+                  "incidentalByCatchMitigationDeviceFirst",
+                  "incidentalByCatchMitigationDeviceTargetFirst",
+                  "incidentalByCatchMitigationDeviceSecond",
+                  "incidentalByCatchMitigationDeviceTargetSecond",
+                  "gearDimensions")
+
+    names(dat)[names(dat) %in% gear_var] <- paste0(record_type, gear_var)
+
+    names(dat)
+
 
     # Warning ----
     if (nrow(df) != nrow(dat)) {
