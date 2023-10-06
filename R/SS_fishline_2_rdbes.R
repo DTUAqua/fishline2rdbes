@@ -31,10 +31,13 @@ SS_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data/references"
+    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2022.csv"
+    # years <- 2022
     # sampling_scheme <- "DNK_AtSea_Observer_Active"
-    # years <- c(2021)
-    # specieslist_name <- "DNK_AtSea_Observer_2021"
+    # data_model_path <-
+    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
+    # years <- c(2022)
+    # specieslist_name <- "DNK_AtSea_Observer_2022"
     # xx <- "observer at-sea"
 
     # Set-up ----
