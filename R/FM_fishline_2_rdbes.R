@@ -79,11 +79,32 @@ FM_fishline_2_rdbes <-
     fm$FMid <- fm$animalId
     fm$FMrecordType <- "FM"
 
-    fm <- mutate(fm, FMpresentation = ifelse(treatment == "UR", "WHL",
-                                             ifelse(treatment == "RH", "GUT",
-                                                    ifelse(treatment == "RU", "GUH",
-                                                           ifelse(treatment %in% c("VV", "VK"), "WNG",
-                                                                  ifelse(treatment == "TAL", "Tail", NA))))))
+    fm <-
+      mutate(fm, FMpresentation = ifelse(
+        treatment %in% c("UR", "KH"), # KH is UR, but cooked
+        "WHL",
+        ifelse(
+          treatment == "RH",
+          "GUT",
+          ifelse(
+            treatment == "RU",
+            "GUH",
+            ifelse(
+              treatment %in% c("VV", "VK"),
+              "WNG",
+              ifelse(treatment == "HA", "TLD",
+                     ifelse(treatment == "KL", "CLA", NA
+                     ))
+            )
+          )
+        )
+      ))
+
+    # fm <- mutate(fm, FMpresentation = ifelse(treatment == "UR", "WHL",
+    #                                          ifelse(treatment == "RH", "GUT",
+    #                                                 ifelse(treatment == "RU", "GUH",
+    #                                                        ifelse(treatment %in% c("VV", "VK"), "WNG",
+    #                                                               ifelse(treatment == "TAL", "Tail", NA))))))
 
     test <- filter(fm, is.na(FMpresentation))
 
