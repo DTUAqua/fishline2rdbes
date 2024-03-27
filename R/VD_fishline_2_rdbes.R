@@ -38,7 +38,7 @@ VD_fishline_2_rdbes <-
 
     # Set-up ----
     library(RODBC)
-    library(plyr)
+    # library(plyr)
     # library(sqldf)
     library(dplyr)
     # library(stringr)
@@ -72,7 +72,7 @@ VD_fishline_2_rdbes <-
     ftj_id$vstart <- as.Date(ftj_id$vstart, format = "%d-%m-%Y")
     ftj_id$vslut <- as.Date(ftj_id$vslut, format = "%d-%m-%Y")
     ftj_id$vslut[is.na(ftj_id$vslut)] <- lubridate::today()
-    ftj_id$bhavn <- as.character(ftj_id$bhavn)
+    ftj_id$bhavn <- stringr::str_pad(as.character(ftj_id$bhavn), pad = "0", side = "left", width = 5)
     ftj_id$btbrt <- as.numeric(ftj_id$btbrt)
 
     # Get country code reference
@@ -204,6 +204,12 @@ VD_fishline_2_rdbes <-
         select(dat, year, cruise, trip, tripId, samplingType, platform1),
         select(vd_not_ok, tripId, VDencryptedVesselCode)
       )
+
+
+    # Adding output with missing homeport and length
+
+    mis_port <- subset(vd, VDhomePort == "")
+
 
     # VD <- select(vd_ok, one_of(vd_temp_t), tripId)
 
