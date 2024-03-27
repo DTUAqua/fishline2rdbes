@@ -9,7 +9,7 @@
 #' @export
 #'
 #' @examples
-get_data_model <- function(table_name, data_model_path, data_model_version = "v1_19_18") {
+get_data_model <- function(table_name, data_model_path, data_model_version = "v1_19_20") {
   ## datamodel
 
   nam <- data.frame(name = c("Design", "Location", "Sampling Details", "Temporal Event",

@@ -9,7 +9,7 @@
 #' @export
 #'
 #' @examples
-get_data_model_vd_sl <- function(table_name, data_model_path, data_model_version = "V1_19_3") {
+get_data_model_vd_sl <- function(table_name, data_model_path = "data/", data_model_version = "v1_19_4") {
   ## datamodel
 
   nam <- data.frame(name = c("Vessel Details", "Species List Details"),
