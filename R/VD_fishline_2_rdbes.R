@@ -195,9 +195,9 @@ VD_fishline_2_rdbes <-
       round(vd$btbrt, digits = 0) #OBS needs to look at both bt and brt
     vd$VDtonUnit <- "GT"
 
-    vd_ok <- subset(vd, !is.na(VDencryptedVesselCode))
+    vd_ok <- subset(vd, !is.na(Encrypted_ID))
 
-    vd_not_ok <- subset(vd, is.na(VDencryptedVesselCode) | VDencryptedVesselCode == "DNK - Unknown vessel")
+    vd_not_ok <- subset(vd, is.na(Encrypted_ID) | VDencryptedVesselCode == "DNK - Unknown vessel")
 
     vd_not_ok <-
       dplyr::right_join(
@@ -208,7 +208,9 @@ VD_fishline_2_rdbes <-
 
     # Adding output with missing homeport and length
 
-    mis_port <- subset(vd, VDhomePort == "")
+    mis_port <- subset(vd_ok, VDhomePort == "" | is.na(VDhomePort))
+
+    mis_length <- subset(vd_ok, VDlength == "NK")
 
 
     # VD <- select(vd_ok, one_of(vd_temp_t), tripId)
@@ -219,6 +221,6 @@ VD_fishline_2_rdbes <-
 
     vd[is.na(vd) ] <- ""
 
-    return(list(vd, VD, vd_not_ok))
+    return(list(vd, VD, vd_not_ok, mis_port, mis_length))
 
   }
