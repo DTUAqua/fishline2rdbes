@@ -30,8 +30,8 @@ VD_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    # data_model_path <- "Q:/dfad/data/Data/RDBES/fishline2rdb/data"
-    # year <- 2021
+    # data_model_path <- "Q:/dfad/data/Data/RDBES/sample_data/fishline2rdbes/data"
+    # year <- 2023
     # cruises <- c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
     # type <- "only_mandatory"
     # encrypter_prefix <- "DNK11084"
@@ -69,8 +69,8 @@ VD_fishline_2_rdbes <-
 
     ftj_id <- read.csv("Q:/dfad/data/Data/Ftjreg/encryptions_RDBES.csv", sep = ";")
     ftj_id$VDencryptedVesselCode <- paste0(ftj_id$Encrypted_ID, "_", ftj_id$Version_ID)
-    ftj_id$vstart <- as.Date(ftj_id$vstart)
-    ftj_id$vslut <- as.Date(ftj_id$vslut)
+    ftj_id$vstart <- as.Date(ftj_id$vstart, format = "%d-%m-%Y")
+    ftj_id$vslut <- as.Date(ftj_id$vslut, format = "%d-%m-%Y")
     ftj_id$vslut[is.na(ftj_id$vslut)] <- lubridate::today()
     ftj_id$bhavn <- as.character(ftj_id$bhavn)
     ftj_id$btbrt <- as.numeric(ftj_id$btbrt)
