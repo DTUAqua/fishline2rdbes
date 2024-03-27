@@ -27,9 +27,12 @@ url_data_model <-
 download.file(url = url_data_model,
               destfile = "./data-raw/RDBES_data_model_VD_SL.xlsx", mode = "wb")
 
-version <- "V1_19_3"
+
+version <- readxl::read_xlsx("./data-raw/RDBES_data_model_VD_SL.xlsx", sheet = 1)[15, 1]
+
+version_1 <- gsub("\\.", "_", gsub(".*? ", "", version))
 
 file.copy(from = "./data-raw/RDBES_data_model_VD_SL.xlsx",
-          to = paste0("./data/RDBES_data_model_VD_SL_", version, ".xlsx"))
+          to = paste0("./data/RDBES_data_model_VD_SL_v", version_1, ".xlsx"))
 
 file.remove("./data-raw/RDBES_data_model_VD_SL.xlsx")
