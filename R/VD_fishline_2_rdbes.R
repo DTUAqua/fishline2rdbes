@@ -23,15 +23,14 @@
 
 VD_fishline_2_rdbes <-
   function(year = 2022,
-           cruises = c("MON", "SEAS", "IN-HIRT", "IN-LYNG"),
-           data_model_path)
+           cruises = c("MON", "SEAS", "IN-HIRT", "IN-LYNG"))
   {
 
 
     # Input for testing ----
 
     # data_model_baseTypes_path <- "Q:/mynd/RDB/create_RDBES_data/references"
-    # years <- 2021
+    # year <- 2021
     # cruises <- c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
     # type <- "only_mandatory"
     # encrypter_prefix <- "DNK11084"
@@ -45,7 +44,7 @@ VD_fishline_2_rdbes <-
     library(haven)
 
     # Get data model ----
-    VD <- get_data_model_vd_sl("Vessel Details", data_model_path = data_model_path)
+    VD <- get_data_model_vd_sl("Vessel Details")
 
     # Get needed stuff ----
 
@@ -67,7 +66,7 @@ VD_fishline_2_rdbes <-
 
     # Get encrypted id's for DNK vessels form the Danish vessel registry
 
-    ftj_id <- read.csv("Q:/dfad/data/Data/Ftjreg/encryptions_RDBES.csv")
+    ftj_id <- read.csv("Q:/dfad/data/Data/Ftjreg/encryptions_RDBES.csv", sep = ";")
     ftj_id$VDencryptedVesselCode <- paste0(ftj_id$Encrypted_ID, "_", ftj_id$Version_ID)
     ftj_id$vstart <- as.Date(ftj_id$vstart)
     ftj_id$vslut <- as.Date(ftj_id$vslut)
