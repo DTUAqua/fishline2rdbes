@@ -23,9 +23,11 @@ BV_fishline_2_rdbes <-
            data_model_path) {
     # Input for testing ----
     #
-    # ref_path <- "Q:/mynd/kibi/RDBES/create_RDBES_data_old/references"
-    # years <- c(2021)
+    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2023.csv"
+    # years <- c(2023)
     # sampling_scheme <- "DNK_Market_Sampling"
+    # data_model_path <- "Q:/dfad/data/Data/RDBES/sample_data/fishline2rdbes/data"
+
 
     # Set-up ----
 
@@ -95,16 +97,49 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
     bv$genetics[bv$genetics == 0] <- NA
     bv$otolithReadingRemark[is.na(bv$otolithReadingRemark)] <- "Unknown"
 
-    var <- data.frame(variable = c("sexCode", "length", "weight",
-                                   "maturityIndex", "age", "genetics"),
-                      value = c("", "lengthMeasureUnit", "treatmentFactor",
-                                "maturityIndexMethod", "otolithReadingRemark", ""),
-                      BVvalueUnitOrScale = c("Sex", "Lengthmm", "Weightg", "SMSF", "Ageyear", "NotApplicable"),
-                      BVmethod = c("", "", "", "gonad", "otolith", ""),
-                      BVtypeMeasured = c("Sex", "LengthTotal", "WeightMeasured",
-                                         "Maturity", "Age", "InfoGenetic"),
-                      BVtypeAssessment = c("Sex", "LengthTotal", "WeightLive",
-                                           "Maturity", "Age", "InfoGenetic"))
+    var <- data.frame(
+      variable = c(
+        "sexCode",
+        "length",
+        "weight",
+        "maturityIndex",
+        "age",
+        "genetics"
+      ),
+      value = c(
+        "",
+        "lengthMeasureUnit",
+        "treatmentFactor",
+        "maturityIndexMethod",
+        "otolithReadingRemark",
+        ""
+      ),
+      BVvalueUnitOrScale = c(
+        "Sex",
+        "Lengthmm",
+        "Weightg",
+        "SMSF",
+        "Ageyear",
+        "NotApplicable"
+      ),
+      BVmethod = c("", "", "", "gonad", "otolith", ""),
+      BVtypeMeasured = c(
+        "Sex",
+        "LengthTotal",
+        "WeightMeasured",
+        "Maturity",
+        "Age",
+        "InfoGenetic"
+      ),
+      BVtypeAssessment = c(
+        "Sex",
+        "LengthTotal",
+        "WeightLive",
+        "Maturity",
+        "Age",
+        "InfoGenetic"
+      )
+    )
 
     setDT(bv)
     L1 <- melt.data.table(bv, id.vars = c("animalId", "sampleId", "speciesListId", "year", "cruise", "trip",
