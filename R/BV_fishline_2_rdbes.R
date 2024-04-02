@@ -1,4 +1,3 @@
-
 #' FishLine 2 RDBES, Frequency Measure (FM)
 #'
 #' @description Converts samples data from national database (fishLine) to RDBES.
@@ -80,18 +79,18 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
 
 
     samp <- mutate(samp, BVpresentation = ifelse(treatment == "UR", "WHL",
-                                             ifelse(treatment == "RH", "GUT",
-                                                    ifelse(treatment == "RU", "GUH",
-                                                           ifelse(treatment %in% c("VV", "VK"), "WNG",
-                                                                  ifelse(treatment == "TAL", "Tail", NA)
-                                                           )
-                                                    )
-                                             )
+                                                 ifelse(treatment == "RH", "GUT",
+                                                        ifelse(treatment == "RU", "GUH",
+                                                               ifelse(treatment %in% c("VV", "VK"), "WNG",
+                                                                      ifelse(treatment == "TAL", "Tail", NA)
+                                                               )
+                                                        )
+                                                 )
     ))
 
     ### kibi - skal dette ikke være TBM?
     bv <- samp[! is.na(samp$individNum) |
-                       (samp$speciesCode == "BRS" & !is.na(samp$age)), ]
+                 (samp$speciesCode == "BRS" & !is.na(samp$age)), ]
 
     # OtolithCollected
     ##  Indication on otolith collected and potentially archived. To be used for all collected otoliths including when an age is provided
@@ -121,14 +120,32 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
     bv$genetics[bv$genetics == 0] <- NA
     bv$otolithReadingRemark[is.na(bv$otolithReadingRemark)] <- "Unknown"
 
+    #wiegth in grams
+    bv$weight <- bv$weight*1000
 
+    #maturity Index recoding
+    maturity_key <- data.frame(maturityIndexMethod = c(rep("A", 8), rep("B", 4),
+                                                       rep("I", 6), rep("M", 6), rep("N", 12)),
+                               maturityIndex = c(1:8, 1:4, 1:6, 1:6, 1:6, 21, 22, 31, 32, 41, 42),
+                               Maturity = c("A", rep("B", 4), "C", "D", "F",
+                                            "A", "B", "C", "D",
+                                            "A", "B", "C", "D", "E", "F",
+                                            "A", "B", "B","C", "D", "E",
+                                            "A", "B", "C", "D", "E", "F", "Ba", "Bb", "Ca", "Cb", "Da", "Db"),
+                               MaturityScale = "SMSF",
+                               AgeSource = "otolith",
+                               AgePrepMet = NA)
+
+
+
+    bv <- merge(bv, maturity_key, by = c("maturityIndexMethod", "maturityIndex"), all.x = T)
 
     var <- data.frame(
       variable = c(
         "sexCode",
         "length",
         "weight",
-        "maturityIndex",
+        "Maturity",
         "age",
         "genetics",
         "OtolithCollected"
@@ -174,10 +191,10 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
 
     setDT(bv)
     L1 <- melt.data.table(bv, id.vars = c("animalId", "sampleId", "speciesListId", "year", "cruise", "trip",
-                                              "station", "speciesCode", "landingCategory",
-                                              "sizeSortingEU", "individNum"),
+                                          "station", "speciesCode", "landingCategory",
+                                          "sizeSortingEU", "individNum"),
                           measure.vars = c("sexCode", "length", "weight",
-                                           "maturityIndex", "age", "genetics",
+                                           "Maturity", "age", "genetics",
                                            "OtolithCollected"),
                           value.name = "BVvalueMeasured")
     L1 <- L1[! is.na(L1$BVvalueMeasured), ]
@@ -192,7 +209,7 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
 
     bv <- merge(L1, L2, by = c("animalId", "value"), all.x = T)
     bv <- merge(bv, unique(samp[, c("animalId", "BVpresentation")]),
-                               by = "animalId", all.x = T)
+                by = "animalId", all.x = T)
     # Recode for SA ----
 
     bv$BVid <- ""
@@ -219,20 +236,20 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
     bv$BVconversionFactorAssessment <- ifelse(bv$value == "treatmentFactor", bv$aux, "1")
 
     bv <-
-        mutate(
-          bv,
-          BVunitName = paste(
-            animalId,
-            cruise,
-            trip,
-            station,
-            speciesCode,
-            landingCategory,
-            sizeSortingEU,
-            individNum,
-            sep = "-"
-          )
+      mutate(
+        bv,
+        BVunitName = paste(
+          animalId,
+          cruise,
+          trip,
+          station,
+          speciesCode,
+          landingCategory,
+          sizeSortingEU,
+          individNum,
+          sep = "-"
         )
+      )
 
     bv$BVsampler <- "Observer"
 
