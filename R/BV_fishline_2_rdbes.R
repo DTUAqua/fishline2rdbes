@@ -89,13 +89,39 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
                                              )
     ))
 
-    ###
+    ### kibi - skal dette ikke være TBM?
     bv <- samp[! is.na(samp$individNum) |
                        (samp$speciesCode == "BRS" & !is.na(samp$age)), ]
+
+    # OtolithCollected
+    ##  Indication on otolith collected and potentially archived. To be used for all collected otoliths including when an age is provided
+
+    bv$OtolithCollected <- "N"
+    bv$OtolithCollected[!(is.na(bv$age)) |
+                          !(is.na(bv$otolithReadingRemark))] <- "Y"
+
+    bv$OtolithCollected[bv$speciesCode == "KLM"] <- "Y"
+    bv$OtolithCollected[bv$speciesCode == "TOR" &
+                          bv$dfuArea %in% c("24", "25", "26", "27")] <- "Y"
+
+    test <-
+      summarise(
+        group_by(
+          bv,
+          speciesCode,
+          dfuArea,
+          age,
+          otolithReadingRemark,
+          OtolithCollected
+        ),
+        no = length(unique(animalId))
+      )
 
     #genetics missing is 0 in the database
     bv$genetics[bv$genetics == 0] <- NA
     bv$otolithReadingRemark[is.na(bv$otolithReadingRemark)] <- "Unknown"
+
+
 
     var <- data.frame(
       variable = c(
@@ -104,7 +130,8 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
         "weight",
         "maturityIndex",
         "age",
-        "genetics"
+        "genetics",
+        "OtolithCollected"
       ),
       value = c(
         "",
@@ -112,6 +139,7 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
         "treatmentFactor",
         "maturityIndexMethod",
         "otolithReadingRemark",
+        "",
         ""
       ),
       BVvalueUnitOrScale = c(
@@ -120,16 +148,18 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
         "Weightg",
         "SMSF",
         "Ageyear",
+        "NotApplicable",
         "NotApplicable"
       ),
-      BVmethod = c("", "", "", "gonad", "otolith", ""),
+      BVmethod = c("", "", "", "gonad", "otolith", "", ""),
       BVtypeMeasured = c(
         "Sex",
         "LengthTotal",
         "WeightMeasured",
         "Maturity",
         "Age",
-        "InfoGenetic"
+        "InfoGenetic",
+        "OtolithCollected"
       ),
       BVtypeAssessment = c(
         "Sex",
@@ -137,7 +167,8 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
         "WeightLive",
         "Maturity",
         "Age",
-        "InfoGenetic"
+        "InfoGenetic",
+        "OtolithCollected"
       )
     )
 
@@ -146,7 +177,8 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
                                               "station", "speciesCode", "landingCategory",
                                               "sizeSortingEU", "individNum"),
                           measure.vars = c("sexCode", "length", "weight",
-                                           "maturityIndex", "age", "genetics"),
+                                           "maturityIndex", "age", "genetics",
+                                           "OtolithCollected"),
                           value.name = "BVvalueMeasured")
     L1 <- L1[! is.na(L1$BVvalueMeasured), ]
     L1 <- merge(L1, var, by = "variable", all.x = T)
@@ -182,7 +214,7 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
 
     # bv[bv$speciesCode %in% c("SIL") & bv$BVvalueUnitOrScale == "ageyear", "BVvalueUnitOrScale"] <- "Agewr"
     bv$BVcertaintyQualitative <- ifelse(bv$value == "otolithReadingRemark", bv$aux, "Unknown")
-    bv[bv$BVtypeMeasured %in% c("LengthTotal", "WeightMeasured"), "BVcertaintyQualitative"] <- "NotApplicable"
+    bv[bv$BVtypeMeasured %in% c("LengthTotal", "WeightMeasured", "OtolithCollected"), "BVcertaintyQualitative"] <- "NotApplicable"
 
     bv$BVconversionFactorAssessment <- ifelse(bv$value == "treatmentFactor", bv$aux, "1")
 
