@@ -213,7 +213,7 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
     bv$BVaccuracy <- tolower(ifelse(bv$value == "lengthMeasureUnit", bv$aux, ""))
     bv$BVaccuracy[bv$BVaccuracy == "sc"] <- "scm"
 
-    # bv[bv$speciesCode %in% c("SIL") & bv$BVvalueUnitOrScale == "ageyear", "BVvalueUnitOrScale"] <- "Agewr"
+    bv[bv$speciesCode %in% c("SIL") & bv$BVvalueUnitOrScale == "ageyear", "BVvalueUnitOrScale"] <- "Agewr"
     bv$BVcertaintyQualitative <- ifelse(bv$value == "otolithReadingRemark", bv$aux, "Unknown")
     bv[bv$BVtypeMeasured %in% c("LengthTotal", "WeightMeasured", "OtolithCollected"), "BVcertaintyQualitative"] <- "NotApplicable"
 
