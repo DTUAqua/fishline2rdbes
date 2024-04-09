@@ -3,10 +3,12 @@
 #'
 #' @description Converts samples data from national database (fishLine) to RDBES. Data model v. 1.18. This function ...
 #'
-#' @param data_model Where to find the .xlsx with the data model
-#' @param year Only takes a single year for now
-#' @param cruises Name of cruises in national database
-#' @param type only_mandatory | everything
+#' @param data_model_path Where to find the .xlsx with the data model
+#' @param basis_years How many years should the species list be based on
+#' @param cruises Which cruises are relevant
+#' @param catch_fractions Catch fractions in the species list
+#' @param specieslist_name Output name of the species list
+#' @param species_to_add additinal AphaiaIds not included in the observations
 #'
 #' @return
 #' @export
@@ -14,14 +16,13 @@
 #'
 #' @examples
 SL_fishline_2_rdbes <-
-  function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
-           sampling_scheme = "DNK_Market_Sampling",
-           years = 2016,
-           data_model_path,
+  function(data_model_path,
            basis_years = c(2016:2020),
+           cruises = c("MON", "SEAS"),
            catch_fractions = c("Dis", "Lan"),
            specieslist_name = "DNK_AtSea_Observer_all_species_same_Dis_Lan",
            species_to_add = c(148776, 137117)) {
+
     # Input for testing ----
 
     # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2022.csv"
@@ -32,6 +33,7 @@ SL_fishline_2_rdbes <-
     # data_model_path <-
     #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
     # basis_years <-  c(2016:2020)
+    # cruises <- c("MON", "SEAS")
     # catch_fractions <- c("Dis", "Lan")
     # specieslist_name <- "DNK_AtSea_Observer_all_species_Dis_Lan"
     # species_to_add <- c(148776, 137117)
@@ -58,16 +60,16 @@ SL_fishline_2_rdbes <-
     channel <- odbcConnect("FishLineDW")
     sl <- sqlQuery(
       channel,
-      paste(
-        "select speciesCode FROM SpeciesList INNER JOIN
+     paste(
+        "select Sample.cruise, speciesCode FROM SpeciesList INNER JOIN
                   Sample ON SpeciesList.sampleId = Sample.sampleId
                   WHERE (Sample.year between ",
-        min(years),
+        min(basis_years),
         " and ",
-        max(years),
+        max(basis_years),
         ")
-                and Sample.tripId in (",
-        paste(trips, collapse = ","),
+                and Sample.cruise in (",
+        paste(toString(sprintf("'%s'", cruises)), collapse = ","),
         ")",
         sep = ""
       )
@@ -91,10 +93,48 @@ SL_fishline_2_rdbes <-
     no_latin <-
       distinct(filter(sl, is.na(latin)), speciesCode, dkName)
 
+    # Rename the following species to iNV from the observer program, since we normally include them in INV
+    # This means that the species will be uploaded, but not be a part of the specieslist and therefore excluded before estimation
+
+    # Blåmusling	Mytilus edulis		BMS
+    # Almindelig hjertemusling	Cerastoderma edule		HMS
+    # Kammusling	Aequipecten opercularis		KAM
+    # Molboøsters	Arctica islandica		MOE
+    # Stor kammusling	Pecten maximus		PEM
+    # Vandmand	Aurelia aurita		VAN
+    # *Slangestjerner	Ophiura		SLS
+    # Almindelig søstjerne	Asterias rubens		SST
+    # Konk	Buccinum undatum		AKO
+    # Stor flæsketerning	Philine aperta		SFL
+    # *Krabber			KRX
+    # Stankelbenskrabbe	Macropodia rostrata		SBK
+    # Strandkrabbe	Carcinus maenas		STK
+    # Svømmekrabbe	Liocarcinus depurator		SVK
+
+
+    sl$speciesCode[sl$cruise %in% c("MON", "SEAS") &
+                     sl$speciesCode %in% c(
+                       "BMS",
+                       "HMS",
+                       "KAM",
+                       "MOE",
+                       "PEM",
+                       "VAN",
+                       "SLS",
+                       "SST",
+                       "AKO",
+                       "SFL",
+                       "KRX",
+                       "SBK",
+                       "STK",
+                       "SVK"
+                     )] <- "INV"
+
     # Delete all none species
     sl <-
       filter(sl, !(is.na(latin)) &
         !(speciesCode %in% c("INV")) & !is.na(aphiaID))
+
 
     # Add species
     if (length(species_to_add) > 0) {
@@ -111,6 +151,8 @@ SL_fishline_2_rdbes <-
     sl$SLspeciesListName <- specieslist_name
     sl$SLcommercialTaxon <- sl$aphiaID
     sl$SLspeciesCode <- sl$aphiaID
+
+
 
     sl$SLcatchFraction <- ""
 
