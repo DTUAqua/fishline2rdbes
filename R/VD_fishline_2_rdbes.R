@@ -5,6 +5,7 @@
 #'
 #' @param year sample year
 #' @param cruises string with names of cruises in national database
+#' @param id_type  with or without version in the encrypted vessel id
 #'
 #' @author Kirsten Birch Håkansson, DTU Aqua
 #'
@@ -24,7 +25,8 @@
 VD_fishline_2_rdbes <-
   function(year = 2022,
            cruises = c("MON", "SEAS", "IN-HIRT", "IN-LYNG"),
-           data_model_path = data_model_path)
+           data_model_path = data_model_path,
+           id_type = "without_version")
   {
 
 
@@ -33,8 +35,6 @@ VD_fishline_2_rdbes <-
     # data_model_path <- "Q:/dfad/data/Data/RDBES/sample_data/fishline2rdbes/data"
     # year <- 2023
     # cruises <- c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
-    # type <- "only_mandatory"
-    # encrypter_prefix <- "DNK11084"
 
     # Set-up ----
     library(RODBC)
@@ -68,7 +68,15 @@ VD_fishline_2_rdbes <-
     # Get encrypted id's for DNK vessels form the Danish vessel registry
 
     ftj_id <- read.csv("Q:/dfad/data/Data/Ftjreg/encryptions_RDBES.csv", sep = ";")
-    ftj_id$VDencryptedVesselCode <- paste0(ftj_id$Encrypted_ID, "_", ftj_id$Version_ID)
+
+    if (id_type == "with_version") {
+      ftj_id$VDencryptedVesselCode <- paste0(ftj_id$Encrypted_ID, "_", ftj_id$Version_ID)
+    }
+
+    if (id_type == "without_version") {
+      ftj_id$VDencryptedVesselCode <- paste0(ftj_id$Encrypted_ID)
+    }
+
     ftj_id$vstart <- as.Date(ftj_id$vstart, format = "%d-%m-%Y")
     ftj_id$vslut <- as.Date(ftj_id$vslut, format = "%d-%m-%Y")
     ftj_id$vslut[is.na(ftj_id$vslut)] <- lubridate::today()
