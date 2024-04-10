@@ -49,12 +49,6 @@ SL_fishline_2_rdbes <-
     SL <-
       get_data_model_vd_sl("Species List Details", data_model_path = data_model_path)
 
-    # Get link ----
-    link <- read.csv(ref_path)
-
-    link <- subset(link, DEsamplingScheme == sampling_scheme)
-
-    trips <- unique(link$tripId[!is.na(link$tripId)])
 
     # Get data from FishLine
     channel <- odbcConnect("FishLineDW")
