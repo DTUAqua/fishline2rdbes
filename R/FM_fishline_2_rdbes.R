@@ -40,7 +40,7 @@ FM_fishline_2_rdbes <-
     FM <- get_data_model("Frequency Measure", data_model_path = data_model_path)
 
     link <- read.csv(ref_path)
-    link <- subset(link, DEsamplingScheme == sampling_scheme)
+    link <- subset(link, DEsamplingScheme %in% sampling_scheme)
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
 

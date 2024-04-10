@@ -169,8 +169,8 @@ FT_fishline_2_rdbes <-
     ft$FTclusterName <- "No"     #To be coded manual - depends on design
 
     ft$FTsampler[ft$cruise %in% c("MON", "SEAS")] <- "Observer"
-    ft$FTsampler[substr(ft$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM")] <-
-      "Self-Sampling"
+    ft$FTsampler[substr(ft$cruise, 1, 3) %in% c("BLH", "BRS", "MAKK", "SIL", "SPE", "TBM") | ft$cruise == "IN-FISKER"] <-
+      "SelfSampling"
     ft$FTsampler[is.na(ft$FTsampler)] <- "Observer"
 
     ft$FTsamplingType[ft$cruise %in% c("MON", "SEAS")] <- "AtSea"

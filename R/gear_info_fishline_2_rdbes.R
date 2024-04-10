@@ -107,11 +107,11 @@ gear_info_fishline_2_rdbes <-
 
     # Below crap needed for loading the fun - maybe ask RCG metier group to add this to their script
 
-    y <- openxlsx::read.xlsx("https://github.com/ices-eg/RCGs/raw/master/Metiers/Reference_lists/Metier%20Subgroup%20Species%202020.xlsx", sheet = 1)
+    y <- openxlsx::read.xlsx("https://github.com/ices-eg/RCGs/raw/master/Metiers/Reference_lists/Metier%20Subgroup%20Species.xlsx", sheet = 1)
     rm(y)
 
     url_target <-
-      "https://github.com/ices-eg/RCGs/raw/master/Metiers/Reference_lists/Metier%20Subgroup%20Species%202020.xlsx"
+      "https://github.com/ices-eg/RCGs/raw/master/Metiers/Reference_lists/Metier%20Subgroup%20Species.xlsx"
     target_ref <- loadSpeciesList(url_target)
 
     # Add needed codes ----
