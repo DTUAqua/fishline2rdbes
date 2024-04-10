@@ -25,7 +25,7 @@ BV_fishline_2_rdbes <-
     #
     # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2023.csv"
     # years <- c(2023)
-    # sampling_scheme <- "DNK_Market_Sampling"
+    # sampling_scheme <- "DNK_Industrial_Sampling"
     # data_model_path <- "Q:/dfad/data/Data/RDBES/sample_data/fishline2rdbes/data"
 
 
@@ -45,7 +45,7 @@ BV_fishline_2_rdbes <-
     BV <- get_data_model("Biological Variable", data_model_path = data_model_path)
 
     link <- read.csv(ref_path)
-    link <- subset(link, DEsamplingScheme == sampling_scheme)
+    link <- subset(link, DEsamplingScheme %in% sampling_scheme)
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
 
@@ -91,7 +91,7 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
 
     ### kibi - skal dette ikke være TBM?
     bv <- samp[! is.na(samp$individNum) |
-                       (samp$speciesCode == "BRS" & !is.na(samp$age)), ]
+                       (samp$speciesCode == "TBM" & !is.na(samp$age)), ]
 
     # OtolithCollected
     ##  Indication on otolith collected and potentially archived. To be used for all collected otoliths including when an age is provided
