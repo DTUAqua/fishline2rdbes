@@ -108,8 +108,8 @@ FO_fishline_2_rdbes <-
       "No" # To be coded manual - depends on design
 
     fo$FOsampler[fo$cruise %in% c("MON", "SEAS")] <- "Observer"
-    fo$FOsampler[substr(fo$cruise, 1, 3) %in% c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM")] <-
-      "Self-Sampling"
+    fo$FOsampler[substr(fo$cruise, 1, 3) %in% c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM") | fo$cruise == "IN-FISKER"] <-
+      "SelfSampling"
 
     fo$FOvalidity <- fo$gearQuality
     fo$FOvalidity[is.na(fo$FOvalidity)] <- "I"
@@ -130,7 +130,8 @@ FO_fishline_2_rdbes <-
       is.na(fo$catchRegistration) |
       is.na(fo$speciesRegistration)] <- "None"
     fo$FOcatchReg[substr(fo$cruise, 1, 3) %in%
-                    c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM")] <-
+                    c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM") |
+                    fo$cruise %in% c("IN-FISKER", "IN-IN-3 PART")] <-
       "Lan"
 
     test <-
@@ -167,7 +168,8 @@ FO_fishline_2_rdbes <-
       fo_h$FOdurationSource[fo_h$cruise %in% c("MON", "SEAS")] <-
         "Crew"
       fo_h$FOdurationSource[substr(fo_h$cruise, 1, 3) %in%
-                              c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM")] <-
+                              c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM") |
+                              fo_h$cruise == "IN-FISKER"] <-
         "Data"
 
       fo_h$FOstartLat <-
