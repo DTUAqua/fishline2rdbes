@@ -31,14 +31,13 @@ SS_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2022.csv"
-    # years <- 2022
-    # sampling_scheme <- "DNK_AtSea_Observer_Active"
+    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2023.csv"
+    # years <- 2023
+    # sampling_scheme <- c("DNK_Industrial_Sampling", "Baltic SPF regional", "DNK_Pelagic_Sampling_HUC")
     # data_model_path <-
-    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
-    # years <- c(2022)
-    # specieslist_name <- "DNK_AtSea_Observer_2022"
-    # xx <- "observer at-sea"
+    #   "Q:/dfad/data/Data/RDBES/sample_data/fishline2rdbes/data"
+    # specieslist_name <- "yyy"
+    # xx <- " "
 
     # Set-up ----
 
@@ -55,7 +54,7 @@ SS_fishline_2_rdbes <-
 
 
     link <- read.csv(ref_path)
-    link <- subset(link, DEsamplingScheme == sampling_scheme)
+    link <- subset(link, DEsamplingScheme %in% sampling_scheme)
 
     trips <- unique(link$tripId[!is.na(link$tripId)])
 
@@ -96,11 +95,11 @@ SS_fishline_2_rdbes <-
     ss$SSclusterName <- "No"    # Not used in this scheme
 
     if (xx == "other") {
-      ss$SSobservationActivityType[ss$tripType == "HVN"] <- "Sort"
-      ss$SScatchFraction[ss$tripType == "HVN"] <- "Lan"
-      ss$SSobservationType[ss$tripType == "HVN"] <- "Volume"
-      ss$SSsampler[ss$tripType == "HVN"] <-  "" # Not relevant, since we do not
-      ss$SSuseForCalculateZero[ss$tripType == "HVN"] <- "N"
+      ss$SSobservationActivityType <- "Sort"
+      ss$SScatchFraction<- "Lan"
+      ss$SSobservationType <- "Volume"
+      ss$SSsampler <-  "" # Not relevant, since we do not
+      ss$SSuseForCalculateZero <- "N"
 
       ss$SSselectionMethod <- "NotApplicable"
 
