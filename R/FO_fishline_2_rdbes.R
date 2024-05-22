@@ -23,8 +23,7 @@
 FO_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
            sampling_scheme = "DNK_Market_Sampling",
-           years = 2016,
-           data_model_path) {
+           years = 2016) {
 
     # Input for testing ----
 
@@ -44,8 +43,7 @@ FO_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    FO <-
-      get_data_model("Fishing Operation", data_model_path = data_model_path)
+    FO <- get_data_model("Fishing Operation")
 
     # Get link ----
     link <- read.csv(ref_path)

@@ -19,8 +19,7 @@
 BV_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
            sampling_scheme = "DNK_Market_Sampling",
-           years = 2016,
-           data_model_path) {
+           years = 2016) {
     # Input for testing ----
     #
     # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2023.csv"
@@ -42,7 +41,7 @@ BV_fishline_2_rdbes <-
     library(data.table)
 
     #data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
-    BV <- get_data_model("Biological Variable", data_model_path = data_model_path)
+    BV <- get_data_model("Biological Variable")
 
     link <- read.csv(ref_path)
     link <- subset(link, DEsamplingScheme %in% sampling_scheme)

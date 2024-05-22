@@ -24,8 +24,7 @@ VS_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
            encryptedVesselCode_path = "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2022/output/for_production",
            sampling_scheme = "DNK_Market_Sampling",
-           years = 2016,
-           data_model_path)
+           years = 2016)
   {
 
 
@@ -46,7 +45,7 @@ VS_fishline_2_rdbes <-
     library(haven)
 
     # Get data model ----
-    VS <- get_data_model("Vessel Selection", data_model_path = data_model_path)
+    VS <- get_data_model("Vessel Selection")
 
     # Get link ----
     link <- read.csv(ref_path)

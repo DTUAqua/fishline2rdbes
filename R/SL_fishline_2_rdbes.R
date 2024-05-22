@@ -16,8 +16,7 @@
 #'
 #' @examples
 SL_fishline_2_rdbes <-
-  function(data_model_path,
-           basis_years = c(2016:2020),
+  function(basis_years = c(2016:2020),
            cruises = c("MON", "SEAS"),
            catch_fractions = c("Dis", "Lan"),
            specieslist_name = "DNK_AtSea_Observer_all_species_same_Dis_Lan",
@@ -46,8 +45,7 @@ SL_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    SL <-
-      get_data_model_vd_sl("Species List Details", data_model_path = data_model_path)
+    SL <- get_data_model_vd_sl("Species List Details")
 
 
     # Get data from FishLine

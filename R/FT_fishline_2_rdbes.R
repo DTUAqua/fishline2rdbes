@@ -23,8 +23,7 @@ FT_fishline_2_rdbes <-
   function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
            encryptedVesselCode_path = "Q:/mynd/RDB/create_RDBES_data/RDBES_data_call_2021/output/for_production",
            years = 2016,
-           sampling_scheme = "DNK_AtSea_Observer_Active",
-           data_model_path)
+           sampling_scheme = "DNK_AtSea_Observer_Active")
   {
 
 
