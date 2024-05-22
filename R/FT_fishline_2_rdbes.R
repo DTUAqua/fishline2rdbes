@@ -47,8 +47,7 @@ FT_fishline_2_rdbes <-
     library(haven)
 
     # Get data model ----
-    FT <-
-      get_data_model("Fishing Trip", data_model_path = data_model_path)
+    FT <- get_data_model("Fishing Trip")
 
     # Get link ----
     link <- read.csv(ref_path)
