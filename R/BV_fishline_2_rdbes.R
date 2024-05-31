@@ -77,6 +77,8 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
     )
     close(channel)
 
+    #from kg to g
+    samp$weight <- samp$weight *1000
 
     samp <- mutate(samp, BVpresentation = ifelse(treatment == "UR", "WHL",
                                              ifelse(treatment == "RH", "GUT",
