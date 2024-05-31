@@ -82,7 +82,7 @@ LE_fishline_2_rdbes <-
 
     # Get encryptedVesselCode
 
-    encryptedVesselCode <- read.csv2("Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production/DNK_2022_2022_HVD.csv")
+    encryptedVesselCode <- read.csv2(paste0("Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production/DNK_", years, "_", years, "_HVD.csv"))
     encryptedVesselCode <- encryptedVesselCode[encryptedVesselCode$tripId %in% samp$tripId,
                                                c("tripId", "VDencryptedVesselCode")]
 
