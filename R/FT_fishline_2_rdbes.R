@@ -194,6 +194,11 @@ FT_fishline_2_rdbes <-
     ft$FTarrivalDate <- as.character(as.Date(ft$dateEnd))
     ft$FTarrivalTime <- as.character(strftime(ft$dateEnd, format = "%H:%M"))
 
+    # The encrypted logbook number is made during the production of the link files.
+    # The encryption is made on the DFAD match_alle, so only samples with a logbook number present in DFAD'et get an encrypted one.
+    # (logbook numbers in DFAD'et are cheked during the creation of the link file)
+    # It may be better to have the encrypted match_alle stored somewhere along the DFAD
+
     ft$FTunitName <- paste(ft$cruise, ft$trip, sep = "-")
 
     ft$FTselectionMethodCluster <- ""  #To be coded manual - depends on design
