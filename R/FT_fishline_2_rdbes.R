@@ -1,4 +1,5 @@
 
+
 #' FishLine 2 RDBES, Fishing trip (FT)
 #'
 #' @description Converts samples data from national database (fishLine) to RDBES.
@@ -30,10 +31,10 @@ FT_fishline_2_rdbes <-
     # Input for testing ----
 
 
-    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2022.csv"
+    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_encryptedMatchAlle_2023.csv"
     # encryptedVesselCode_path <-
     #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production"
-    # years <- 2022
+    # years <- 2023
     # sampling_scheme <- c("DNK_AtSea_Observer_Active", "DNK_AtSea_Observer_passive")
     # data_model_path <-
     #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
@@ -123,7 +124,7 @@ FT_fishline_2_rdbes <-
 
     # Add needed stuff ----
 
-    tr_0 <- left_join(link[,grep("^[FT]|^[trip]", names(link), value = T)], tr)
+    tr_0 <- left_join(distinct(link[,grep("^FT|^trip", names(link), value = T)]), tr)
 
     # encryptedVesselCode
 
@@ -139,23 +140,7 @@ FT_fishline_2_rdbes <-
 
     # Recode for FT ----
 
-    ft <-
-      distinct(tr_1,
-               tripId,
-               tripType,
-               cruise,
-               trip,
-               VDencryptedVesselCode,
-               year,
-               dateStart,
-               dateEnd,
-               arrivalLocation,
-               numberOfHaulsOrSets, FTstratification, FTstratumName,
-               FTnumberTotal, FTnumberSampled, FTselectionProb,
-               FTinclusionProb, FTselectionMethod, FTsampled,
-               FTnoSampReason, FOstratification, FOstratumName,
-               FOnumberTotal, FOnumberSampled, FOselectionProb,
-               FOinclusionProb, FOselectionMethod, FOsampled, FOnoSampReason)
+    ft <- tr_1
 
     ft$FTid <- ft$tripId
     ft$FTrecordType <- "FT"
@@ -199,7 +184,12 @@ FT_fishline_2_rdbes <-
     # (logbook numbers in DFAD'et are cheked during the creation of the link file)
     # It may be better to have the encrypted match_alle stored somewhere along the DFAD
 
-    ft$FTunitName <- paste(ft$cruise, ft$trip, sep = "-")
+    if ("FTencryptedMatchAlle" %in% names(ft)) {
+      ft$FTunitName <- paste(ft$cruise, ft$trip, ft$FTencryptedMatchAlle,  sep = "-")
+
+    } else {
+      ft$FTunitName <- paste(NA, ft$cruise, ft$trip, sep = "-")
+    }
 
     ft$FTselectionMethodCluster <- ""  #To be coded manual - depends on design
     ft$FTnumberTotalClusters <- ""     #To be coded manual - depends on design
