@@ -9,7 +9,9 @@
 #' @export
 #'
 #' @examples
-get_data_model_vd_sl <- function(table_name, data_model_path = data_model_path, data_model_version = "v1_19_4") {
+get_data_model_vd_sl <- function(table_name,
+                                 data_model_path = "Q:/20-forskning/20-dfad/data/Data/RDBES/sample_data/create_RDBES_data/input",
+                                 data_model_version = "v1_19_4") {
   ## datamodel
 
   nam <- data.frame(name = c("Vessel Details", "Species List Details"),

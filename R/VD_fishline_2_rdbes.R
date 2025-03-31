@@ -23,7 +23,7 @@
 #'
 
 VD_fishline_2_rdbes <-
-  function(year = 2022,
+  function(year = 2024,
            cruises = c("MON", "SEAS", "IN-HIRT", "IN-LYNG"),
            id_type = "without_version")
   {
@@ -31,7 +31,7 @@ VD_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    # data_model_path <- "Q:/dfad/data/Data/RDBES/sample_data/fishline2rdbes/data"
+    # data_model_path <- "Q:/20-forskning/20-dfad/data/Data/RDBES/sample_data/fishline2rdbes/data"
     # year <- 2023
     # cruises <- c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
 
@@ -53,7 +53,7 @@ VD_fishline_2_rdbes <-
     dat <- RODBC::sqlQuery(
       channel,
       paste(
-        "select * FROM dbo.Trip
+        "select * FROM FishLineDW.dbo.Trip
          WHERE (Trip.year between ", min(year), " and ", max(year) , ")
                 and Trip.cruise in ('", paste(cruises, collapse = "','"),
         "')",
@@ -66,14 +66,14 @@ VD_fishline_2_rdbes <-
 
     # Get encrypted id's for DNK vessels form the Danish vessel registry
 
-    ftj_id <- read.csv("Q:/dfad/data/Data/Ftjreg/encryptions_RDBES.csv", sep = ";")
+    ftj_id <- read.csv("Q:/20-forskning/20-dfad/data/Data/Ftjreg/encryptions_RDBES.csv")
 
     if (id_type == "with_version") {
-      ftj_id$VDencryptedVesselCode <- paste0(ftj_id$Encrypted_ID, "_", ftj_id$Version_ID)
+      ftj_id$VDencryptedVesselCode <- paste0(ftj_id$encrypted_ID, "_", ftj_id$Version_ID)
     }
 
     if (id_type == "without_version") {
-      ftj_id$VDencryptedVesselCode <- paste0(ftj_id$Encrypted_ID)
+      ftj_id$VDencryptedVesselCode <- paste0(ftj_id$encrypted_ID)
     }
 
     ftj_id$vstart <- as.Date(ftj_id$vstart, format = "%d-%m-%Y")
@@ -85,10 +85,10 @@ VD_fishline_2_rdbes <-
     # Get country code reference
 
     ctry <-
-      read.csv("Q:/mynd/SAS Library/Country/country.csv", sep = ";")
+      read.csv("Q:/50-radgivning/02-mynd/SAS Library/Country/country.csv", sep = ";")
 
     # Get LOCODE's for homeport
-    locode <- read_sas("Q:/mynd/SAS Library/Lplads/lplads.sas7bdat")
+    locode <- read_sas("Q:/50-radgivning/02-mynd/SAS Library/Lplads/lplads.sas7bdat")
 
     # Add needed stuff to dat ----
     # This only works for DNK vessels, since we only have vessel info about DNK vessels
@@ -202,9 +202,9 @@ VD_fishline_2_rdbes <-
       round(vd$btbrt, digits = 0) #OBS needs to look at both bt and brt
     vd$VDtonUnit <- "GT"
 
-    vd_ok <- subset(vd, !is.na(Encrypted_ID))
+    vd_ok <- subset(vd, !is.na(encrypted_ID))
 
-    vd_not_ok <- subset(vd, is.na(Encrypted_ID) | VDencryptedVesselCode == "DNK - Unknown vessel")
+    vd_not_ok <- subset(vd, is.na(encrypted_ID) | VDencryptedVesselCode == "DNK - Unknown vessel")
 
     vd_not_ok <-
       dplyr::right_join(
