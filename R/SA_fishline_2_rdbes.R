@@ -298,7 +298,7 @@ SA_fishline_2_rdbes <-
 
     sa$SAsex[sa$SAsex == FALSE] <- "F"
     sa <- plyr::rbind.fill(SA, sa)
-    sa <- sa[ , c(names(SA), "SAstateOfProcessing", "speciesListId", "sampleId", "SAid", "year")]
+    sa <- sa[ , c(names(SA), "speciesListId", "sampleId", "SAid", "year")]
 
     sa <- unique(sa) #remove pr fish information and stick to by sample
 
