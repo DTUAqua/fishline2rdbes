@@ -31,13 +31,13 @@ FT_fishline_2_rdbes <-
     # Input for testing ----
 
 
-    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_encryptedMatchAlle_2023.csv"
+    # ref_path <- "C:/Users/kibi/OneDrive - Danmarks Tekniske Universitet/gits/create_RDBES_data/references/link_fishLine_sampling_designs_encryptedMatchAlle_2023.csv"
     # encryptedVesselCode_path <-
-    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production"
+    #   "C:/Users/kibi/OneDrive - Danmarks Tekniske Universitet/gits/create_RDBES_data/output/for_production"
     # years <- 2023
     # sampling_scheme <- c("DNK_AtSea_Observer_Active", "DNK_AtSea_Observer_passive")
     # data_model_path <-
-    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
+    #   "C:/Users/kibi/OneDrive - Danmarks Tekniske Universitet/gits/create_RDBES_data/input"
 
     # Set-up ----
 
@@ -48,7 +48,7 @@ FT_fishline_2_rdbes <-
     library(haven)
 
     # Get data model ----
-    FT <- get_data_model("Fishing Trip")
+    FT <- fishline2rdbes::get_data_model("Fishing Trip")
 
     # Get link ----
     link <- read.csv(ref_path)
@@ -178,6 +178,12 @@ FT_fishline_2_rdbes <-
 
     ft$FTarrivalDate <- as.character(as.Date(ft$dateEnd))
     ft$FTarrivalTime <- as.character(strftime(ft$dateEnd, format = "%H:%M"))
+
+
+    ft$FTdominantLandingDate[ft$cruise %in% c("MON", "SEAS")] <- "" #This is not recorded, so it need to come from the sale slips
+    ft$FTdominantLandingDate[substr(ft$cruise, 1, 3) %in% c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM") |
+                               ft$cruise == "IN-FISKER"]  <- "" #This is not recorded, so it need to come from the sale slips
+    ft$FTdominantLandingDate[ft$cruise %in% c("IN-HIRT", "IN-LYNG", "IN-3 PART")] <- "" #This may be recorded, so it need to come from the sale slips
 
     # The encrypted logbook number is made during the production of the link files.
     # The encryption is made on the DFAD match_alle, so only samples with a logbook number present in DFAD'et get an encrypted one.
