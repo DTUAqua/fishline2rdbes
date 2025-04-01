@@ -27,13 +27,13 @@ FO_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2023.csv"
-    encryptedVesselCode_path <-
-      "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production"
-    years <- 2023
-    sampling_scheme <- c("DNK_Industrial_Sampling", "Baltic SPF regional", "DNK_Pelagic_Sampling_HUC")
-    data_model_path <-
-      "Q:/dfad/data/Data/RDBES/sample_data/fishline2rdbes/data"
+    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2023.csv"
+    # encryptedVesselCode_path <-
+    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production"
+    # years <- 2023
+    # sampling_scheme <- c("DNK_Industrial_Sampling", "Baltic SPF regional", "DNK_Pelagic_Sampling_HUC")
+    # data_model_path <-
+    #   "Q:/dfad/data/Data/RDBES/sample_data/fishline2rdbes/data"
 
     # Set-up ----
 
