@@ -21,7 +21,7 @@ get_data_model <- function(table_name,
                              "Frequency Measure", "Biological Variable"),
                     code = c("DE", "LO", "SD", "TE", "VS", "FT", "FO", "SS", "LE", "SA", "FM", "BV"))
 
-  if (! table_name %in% nam$name){
+  if (!(table_name %in% nam$name)) {
     print("Table Name Not Found In CS Design Model")
   } else{
 
