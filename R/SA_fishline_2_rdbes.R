@@ -37,7 +37,6 @@ SA_fishline_2_rdbes <-
     library(haven)
     library(lubridate)
 
-    #data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
     SA <- get_data_model("Sample")
     samp <- data$samp
     area <- data$area
