@@ -24,13 +24,11 @@ SL_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2022.csv"
+    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_encryptedMatchAlle_2023.csv"
     # encryptedVesselCode_path <-
     #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production"
-    # years <- 2022
-    # sampling_scheme <- "DNK_AtSea_Observer_Active"
-    # data_model_path <-
-    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
+    # years <- 2023
+    # sampling_scheme <- c("DNK_AtSea_Observer_Active", "DNK_AtSea_Observer_passive")
     # basis_years <-  c(2016:2020)
     # cruises <- c("MON", "SEAS")
     # catch_fractions <- c("Dis", "Lan")
@@ -45,7 +43,7 @@ SL_fishline_2_rdbes <-
     library(stringr)
     library(haven)
 
-    SL <- get_data_model_vd_sl("Species List Details")
+    SL <- fishline2rdbes::get_data_model_vd_sl("Species List Details")
 
 
     # Get data from FishLine
@@ -163,8 +161,10 @@ SL_fishline_2_rdbes <-
     sl <-
       data.frame(sl[rep(seq_len(nrow(sl)), each = length(unique(SLyear))), ], SLyear)
 
-    id <- distinct(ungroup(sl), SLspeciesListName)
-    sl$SLid <- row.names(id)
+    id <- distinct(ungroup(sl), SLspeciesListName, SLcatchFraction)
+    id$SLid <- row.names(id)
+
+    sl <- left_join(sl, id)
 
     # sl <- plyr::rbind.fill(SL, sl)
     sl <- distinct(select(ungroup(sl), one_of(names(SL)), SLid))
