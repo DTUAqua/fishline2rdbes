@@ -27,13 +27,13 @@ FO_fishline_2_rdbes <-
 
     # Input for testing ----
 
-    ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2023.csv"
-    encryptedVesselCode_path <-
-      "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production"
-    years <- 2023
-    sampling_scheme <- c("DNK_Industrial_Sampling", "Baltic SPF regional", "DNK_Pelagic_Sampling_HUC")
-    data_model_path <-
-      "Q:/dfad/data/Data/RDBES/sample_data/fishline2rdbes/data"
+    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2023.csv"
+    # encryptedVesselCode_path <-
+    #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production"
+    # years <- 2023
+    # sampling_scheme <- c("DNK_Industrial_Sampling", "Baltic SPF regional", "DNK_Pelagic_Sampling_HUC")
+    # data_model_path <-
+    #   "Q:/dfad/data/Data/RDBES/sample_data/fishline2rdbes/data"
 
     # Set-up ----
 
@@ -163,12 +163,19 @@ FO_fishline_2_rdbes <-
       fo_h$FOduration[fo_h$cruise %in% c("MON", "SEAS")] <-
         as.character(round(as.numeric(fo_h$fishingtime), digits = 0))
 
+      fo_h$FOfishingDurationDataBasis[fo_h$cruise %in% c("MON", "SEAS")] <-
+        "Unknown"
+      fo_h$FOfishingDurationDataBasis[substr(fo_h$cruise, 1, 3) %in%
+                                        c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM") |
+                                        fo_h$cruise == "IN-FISKER"] <-
+        "Unknown"
+
       fo_h$FOdurationSource[fo_h$cruise %in% c("MON", "SEAS")] <-
-        "Crew"
+        "Unknown"
       fo_h$FOdurationSource[substr(fo_h$cruise, 1, 3) %in%
                               c("BLH", "BRS", "MAK", "SIL", "SPE", "TBM") |
                               fo_h$cruise == "IN-FISKER"] <-
-        "Data"
+        "Unknown"
 
       fo_h$FOstartLat <-
         as.character(round(fo_h$latPosStartDec, digits = 5))
@@ -194,7 +201,9 @@ FO_fishline_2_rdbes <-
       fo_t$FOendTime <- ""
 
       fo_t$FOduration <- ""
-      fo_t$FOdurationSource <- "Data"
+      fo_t$FOfishingDurationDataBasis <- "Unknown"
+
+      fo_t$FOdurationSource <- "Unknown"
 
       fo_t$FOstartLat <- ""
       fo_t$FOstartLon <- ""
