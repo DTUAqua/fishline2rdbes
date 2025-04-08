@@ -4,10 +4,7 @@
 #' @description Converts samples data from national database (fishLine) to RDBES.
 #' Data model v. 1.19
 #'
-#' @param path_to_data_model_baseTypes Where to find the baseTypes for the data model
-#' @param year years needed
-#' @param cruises Name of cruises in national database
-#' @param type only_mandatory | everything
+#' @param data
 #'
 #' @author Kirsten Birch Håkansson, DTU Aqua
 #'
