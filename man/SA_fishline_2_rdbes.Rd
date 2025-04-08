@@ -4,21 +4,10 @@
 \alias{SA_fishline_2_rdbes}
 \title{FishLine 2 RDBES, Landing event (LE)}
 \usage{
-SA_fishline_2_rdbes(
-  ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
-  sampling_scheme = "DNK_Market_Sampling",
-  years = 2016,
-  type = "everything"
-)
+SA_fishline_2_rdbes(data = SA_data)
 }
 \arguments{
-\item{type}{only_mandatory | everything}
-
-\item{path_to_data_model_baseTypes}{Where to find the baseTypes for the data model}
-
-\item{year}{years needed}
-
-\item{cruises}{Name of cruises in national database}
+\item{data}{}
 }
 \description{
 Converts samples data from national database (fishLine) to RDBES.

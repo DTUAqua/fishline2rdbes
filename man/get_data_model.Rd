@@ -4,7 +4,7 @@
 \alias{get_data_model}
 \title{Title}
 \usage{
-get_data_model(table_name, data_model_version = "v1_19_18")
+get_data_model(table_name, data_model_version = "v1_19_60")
 }
 \arguments{
 \item{data_model_version}{}

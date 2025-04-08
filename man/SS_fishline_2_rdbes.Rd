@@ -9,18 +9,17 @@ SS_fishline_2_rdbes(
   sampling_scheme = "DNK_Market_Sampling",
   years = 2016,
   xx = "observer at-sea",
-  specieslist_name = "DNK_Market_Sampling_2021",
-  type = "everything"
+  specieslist_name = "DNK_Market_Sampling_2021"
 )
 }
 \arguments{
-\item{type}{only_mandatory | everything}
-
 \item{path_to_data_model_baseTypes}{Where to find the baseTypes for the data model}
 
 \item{year}{years needed}
 
 \item{cruises}{Name of cruises in national database}
+
+\item{type}{only_mandatory | everything}
 }
 \description{
 Converts samples data from national database (fishLine) to RDBES.
