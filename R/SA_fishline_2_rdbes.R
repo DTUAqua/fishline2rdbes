@@ -1,12 +1,4 @@
-
-#' FishLine 2 RDBES, Landing event (LE)
-#'
-#' @param ref_path
-#' @param sampling_scheme
-#' @param years
-#'
-#' @description Converts samples data from national database (fishLine) to RDBES.
-#' Data model v. 1.19
+#' @param data
 #'
 #' @author Kirsten Birch Håkansson, DTU Aqua
 #'
@@ -16,9 +8,7 @@
 #'
 #' @examples
 SA_fishline_2_rdbes <-
-  function(ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
-           sampling_scheme = "DNK_Market_Sampling",
-           years = 2016) {
+  function(data = SA_data) {
     # Input for testing ----
 
     # ref_path <- "C:/Users/kibi/OneDrive - Danmarks Tekniske Universitet/gits/create_RDBES_data/references/link_fishLine_sampling_designs_2023.csv"
@@ -30,7 +20,7 @@ SA_fishline_2_rdbes <-
     # Set-up ----
 
 
-    library(sqldf)
+    # library(sqldf)
     library(tidyr)
     library(plyr, include.only = c("rbind.fill"))
     library(dplyr)
@@ -38,68 +28,74 @@ SA_fishline_2_rdbes <-
     library(haven)
     library(lubridate)
 
-    #data_model <- readRDS(paste0(ref_path, "/BaseTypes.rds"))
     SA <- get_data_model("Sample")
+    samp <- data$samp
+    area <- data$area
+    art <- data$art
 
-    link <- read.csv(ref_path)
-    link <- subset(link, DEsamplingScheme %in% sampling_scheme)
-
-    trips <- unique(link$tripId[!is.na(link$tripId)])
+    # link <- link
+    # link <- subset(link, DEsamplingScheme %in% sampling_scheme)
+    #
+    # trips <- unique(link$tripId[!is.na(link$tripId)])
 
     # Get needed stuff ----
 
     # Get data from FishLine
-    channel <- odbcConnect("FishLineDW")
-    samp <- sqlQuery(
-      channel,
-      paste(
-        "SELECT specieslist.*, Animal.animalId, Animal.individNum,
-                  Animal.representative, Animal.number as ani_number, Age.age,
-                  Age.number as age_number
-                  FROM FishLineDW.dbo.SpeciesList INNER JOIN
-                  FishLineDW.dbo.Sample ON SpeciesList.sampleId = Sample.sampleId LEFT OUTER JOIN
-                  FishLineDW.dbo.Animal ON SpeciesList.speciesListId = Animal.speciesListId LEFT OUTER JOIN
-                  fishlineDW.dbo.Age ON Animal.animalId = Age.animalId
-         WHERE (Specieslist.year between ",
-        min(years),
-        " and ",
-        max(years),
-        ")
-                and Sample.tripId in (",
-        paste(trips, collapse = ","),
-        ")",
-        sep = ""
-      )
-    )
-    close(channel)
+
+    # channel <- odbcConnect("FishLineDW")
+    # samp <- sqlQuery(
+    #   channel,
+    #   paste(
+    #     "SELECT specieslist.*, Animal.animalId, Animal.individNum,
+    #               Animal.representative, Animal.number as ani_number
+    #               FROM FishLineDW.dbo.SpeciesList INNER JOIN
+    #               FishLineDW.dbo.Sample ON SpeciesList.sampleId = Sample.sampleId LEFT OUTER JOIN
+    #               FishLineDW.dbo.Animal ON SpeciesList.speciesListId = Animal.speciesListId
+    #      WHERE (Specieslist.year between ",
+    #     min(years),
+    #     " and ",
+    #     max(years),
+    #     ")
+    #             and Sample.tripId in (",
+    #     paste(trips, collapse = ","),
+    #     ")",
+    #     sep = ""
+    #   )
+    # )
+    # close(channel)
+    #
+    # samp$dateGearStart <- force_tz(samp$dateGearStart, tzone = "UTC")
+    # samp <- subset(samp, !(is.na(dfuArea)))
+    #
+    # channel <- odbcConnect("FishLine")
+    # area <- sqlQuery(
+    #   channel,
+    #   paste("SELECT DFUArea, areaICES FROM FishLine.dbo.L_DFUArea",
+    #     sep = ""
+    #   )
+    # )
+    # art <-
+    #   sqlQuery(
+    #     channel,
+    #     paste(
+    #       "select speciesCode, latin, speciesFAO, aphiaID FROM FishLine.dbo.L_species"
+    #     )
+    #   )
+    # close(channel)
+
+    # Add needed stuff ----
 
     samp$dateGearStart <- force_tz(samp$dateGearStart, tzone = "UTC")
     samp <- subset(samp, !(is.na(dfuArea)))
 
-    channel <- odbcConnect("FishLine")
-    area <- sqlQuery(
-      channel,
-      paste("SELECT DFUArea, areaICES FROM FishLine.dbo.L_DFUArea",
-        sep = ""
-      )
-    )
-    art <-
-      sqlQuery(
-        channel,
-        paste(
-          "select speciesCode, latin, speciesFAO, aphiaID FROM FishLine.dbo.L_species"
-        )
-      )
-    close(channel)
-
-    # Add needed stuff ----
+    error_no_area <- subset(samp, (is.na(dfuArea)))
 
     samp$dfuArea <- as.character(samp$dfuArea)
 
     sa <- left_join(samp, area, by = c("dfuArea" = "DFUArea"))
     sa <- left_join(sa, art)
 
-    no_latin <- distinct(filter(sa, is.na(latin)), speciesCode)
+    check_no_latin <- distinct(filter(sa, is.na(latin) | is.na(aphiaID)), speciesCode)
 
     # Delete all none species
     sa <- filter(sa, !(is.na(latin)) &

@@ -4,14 +4,10 @@
 \alias{SA_fishline_2_rdbes}
 \title{FishLine 2 RDBES, Landing event (LE)}
 \usage{
-SA_fishline_2_rdbes(
-  ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
-  sampling_scheme = "DNK_Market_Sampling",
-  years = 2016
-)
+SA_fishline_2_rdbes(data = SA_data)
 }
 \arguments{
-\item{years}{}
+\item{data}{}
 }
 \description{
 Converts samples data from national database (fishLine) to RDBES.
