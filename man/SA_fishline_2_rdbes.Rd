@@ -11,13 +11,7 @@ SA_fishline_2_rdbes(
 )
 }
 \arguments{
-\item{path_to_data_model_baseTypes}{Where to find the baseTypes for the data model}
-
-\item{year}{years needed}
-
-\item{cruises}{Name of cruises in national database}
-
-\item{type}{only_mandatory | everything}
+\item{years}{}
 }
 \description{
 Converts samples data from national database (fishLine) to RDBES.
