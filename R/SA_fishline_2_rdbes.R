@@ -1,9 +1,3 @@
-
-#' FishLine 2 RDBES, Landing event (LE)
-#'
-#' @description Converts samples data from national database (fishLine) to RDBES.
-#' Data model v. 1.19
-#'
 #' @param data
 #'
 #' @author Kirsten Birch Håkansson, DTU Aqua
@@ -17,9 +11,9 @@ SA_fishline_2_rdbes <-
   function(data = SA_data) {
     # Input for testing ----
 
-    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2022.csv"
-    # years <- 2022
-    # sampling_scheme <- "DNK_AtSea_Observer_Active"
+    # ref_path <- "C:/Users/kibi/OneDrive - Danmarks Tekniske Universitet/gits/create_RDBES_data/references/link_fishLine_sampling_designs_2023.csv"
+    # years <- c(2023)
+    # sampling_scheme <- "DNK_Industrial_Sampling"
     # data_model_path <-
     #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
 
@@ -47,6 +41,7 @@ SA_fishline_2_rdbes <-
     # Get needed stuff ----
 
     # Get data from FishLine
+
     # channel <- odbcConnect("FishLineDW")
     # samp <- sqlQuery(
     #   channel,
@@ -90,7 +85,6 @@ SA_fishline_2_rdbes <-
 
     # Add needed stuff ----
 
-
     samp$dateGearStart <- force_tz(samp$dateGearStart, tzone = "UTC")
     samp <- subset(samp, !(is.na(dfuArea)))
 
@@ -109,6 +103,19 @@ SA_fishline_2_rdbes <-
 
     # Identify lower hierachy
 
+    # Fix lh for sandeel
+    ## Saneel are read in group of ~3 - with the same animalId.
+    ## Each fish need their own row in BV
+
+    tbm_ej_rep <- subset(sa, speciesCode == "TBM" & representative == "ja"
+                         & !is.na(age))
+
+    tbm_ej_rep$individNum <- 100000 + as.integer(row.names(tbm_ej_rep))
+    tbm_ej_rep$representative  <- "nej"
+
+    tbm_ej_rep$ani_number <- tbm_ej_rep$age_number
+
+    sa <- rbind(sa, tbm_ej_rep)
 
     lh <-
       distinct(
