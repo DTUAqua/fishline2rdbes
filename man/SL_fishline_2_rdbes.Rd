@@ -5,24 +5,25 @@
 \title{FishLine 2 RDBES, species list (SL)}
 \usage{
 SL_fishline_2_rdbes(
-  ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
-  sampling_scheme = "DNK_Market_Sampling",
-  years = 2016,
   basis_years = c(2016:2020),
+  cruises = c("MON", "SEAS"),
   catch_fractions = c("Dis", "Lan"),
   specieslist_name = "DNK_AtSea_Observer_all_species_same_Dis_Lan",
-  species_to_add = c(148776, 137117),
-  type = "everything"
+  species_to_add = c(148776, 137117)
 )
 }
 \arguments{
-\item{type}{only_mandatory | everything}
+\item{basis_years}{How many years should the species list be based on}
 
-\item{data_model}{Where to find the .xlsx with the data model}
+\item{cruises}{Which cruises are relevant}
 
-\item{year}{Only takes a single year for now}
+\item{catch_fractions}{Catch fractions in the species list}
 
-\item{cruises}{Name of cruises in national database}
+\item{specieslist_name}{Output name of the species list}
+
+\item{species_to_add}{additinal AphaiaIds not included in the observations}
+
+\item{data_model_path}{Where to find the .xlsx with the data model}
 }
 \description{
 Converts samples data from national database (fishLine) to RDBES. Data model v. 1.18. This function ...

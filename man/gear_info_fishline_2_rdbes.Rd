@@ -4,7 +4,12 @@
 \alias{gear_info_fishline_2_rdbes}
 \title{Gear information from FishLine required in the RDBES}
 \usage{
-gear_info_fishline_2_rdbes(df = samp, checks = T)
+gear_info_fishline_2_rdbes(
+  df = samp,
+  record_type,
+  ices_area_already_addded = F,
+  checks = F
+)
 }
 \arguments{
 \item{selection_device:}{TO DO}

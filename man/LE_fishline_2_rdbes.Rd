@@ -7,20 +7,19 @@
 LE_fishline_2_rdbes(
   ref_path = "Q:/mynd/RDB/create_RDBES_data/references",
   encryptedVesselCode_path =
-    "Q:/mynd/kibi/RDBES/create_RDBES_data/RDBES_data_call_2022/output/for_production",
+    "Q:/mynd/kibi/RDBES/create_RDBES_data_old/output/data_call_2022/for_production",
   sampling_scheme = "DNK_Market_Sampling",
-  years = 2016,
-  type = "everything"
+  years = 2016
 )
 }
 \arguments{
-\item{type}{only_mandatory | everything}
-
 \item{path_to_data_model_baseTypes}{Where to find the baseTypes for the data model}
 
 \item{year}{years needed}
 
 \item{cruises}{Name of cruises in national database}
+
+\item{type}{only_mandatory | everything}
 }
 \description{
 Converts samples data from national database (fishLine) to RDBES.

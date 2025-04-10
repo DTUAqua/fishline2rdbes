@@ -4,7 +4,12 @@
 \alias{get_data_model_vd_sl}
 \title{Title}
 \usage{
-get_data_model_vd_sl(table_name, data_model_version = "v1_19_3")
+get_data_model_vd_sl(
+  table_name,
+  data_model_path =
+    "Q:/20-forskning/20-dfad/data/Data/RDBES/sample_data/create_RDBES_data/input",
+  data_model_version = "v1_19_4"
+)
 }
 \arguments{
 \item{data_model_version}{}

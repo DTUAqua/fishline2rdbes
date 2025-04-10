@@ -5,14 +5,17 @@
 \title{FishLine 2 RDBES, Vessel details (VD)}
 \usage{
 VD_fishline_2_rdbes(
-  year = 2022,
-  cruises = c("MON", "SEAS", "IN-HIRT", "IN-LYNG")
+  year = 2024,
+  cruises = c("MON", "SEAS", "IN-HIRT", "IN-LYNG"),
+  id_type = "without_version"
 )
 }
 \arguments{
 \item{year}{sample year}
 
 \item{cruises}{string with names of cruises in national database}
+
+\item{id_type}{with or without version in the encrypted vessel id}
 }
 \description{
 Converts samples data from national database (fishLine) to RDBES.
