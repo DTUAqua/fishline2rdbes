@@ -22,9 +22,9 @@ BV_fishline_2_rdbes <-
            years = 2016) {
     # Input for testing ----
     #
-    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2023.csv"
+    # ref_path <- "C:/Users/kibi/OneDrive - Danmarks Tekniske Universitet/gits/create_RDBES_data/references/link_fishLine_sampling_designs_2023.csv"
     # years <- c(2023)
-    # sampling_scheme <- "DNK_Industrial_Sampling"
+    # sampling_scheme <- c("DNK_Industrial_Sampling","Baltic SPF regional","DNK_Pelagic_Sampling_HUC")
     # data_model_path <- "Q:/dfad/data/Data/RDBES/sample_data/fishline2rdbes/data"
 
 
@@ -59,7 +59,7 @@ BV_fishline_2_rdbes <-
                   Animal.statisticalRectangle, Animal.gearQuality, Animal.gearType, Animal.meshSize, Animal.speciesCode, Animal.landingCategory, Animal.dfuBase_Category, Animal.sizeSortingEU, Animal.sizeSortingDFU, Animal.ovigorous, Animal.cuticulaHardness, Animal.treatment,
                   Animal.speciesList_sexCode, Animal.sexCode, Animal.representative, Animal.individNum, Animal.number, Animal.speciesList_number, Animal.length, Animal.lengthMeasureUnit, Animal.weight, Animal.treatmentFactor, Animal.maturityIndex, Animal.maturityIndexMethod,
                   Animal.broodingPhase, Animal.weightGutted, Animal.weightLiver, Animal.weightGonads, Animal.parasiteCode, Animal.fatIndex, Animal.fatIndexMethod, Animal.numVertebra, Animal.maturityReaderId, Animal.maturityReader, Animal.remark, Animal.animalInfo_remark, Animal.catchNum,
-                  Animal.otolithFinScale, Age.age, Age.agePlusGroup, Age.otolithReadingRemark, Age.genetics
+                  Animal.otolithFinScale, Age.age, Age.number as number_age, Age.agePlusGroup, Age.otolithReadingRemark, Age.genetics
 FROM        fishlineDW.dbo.Animal INNER JOIN
                   fishlineDW.dbo.SpeciesList ON Animal.speciesListId = SpeciesList.speciesListId INNER JOIN
                   fishlineDW.dbo.Sample ON SpeciesList.sampleId = Sample.sampleId LEFT OUTER JOIN
@@ -78,7 +78,7 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
     close(channel)
 
     #from kg to g
-    samp$weight <- samp$weight *1000
+    samp$weight <- samp$weight * 1000
 
     samp <- mutate(samp, BVpresentation = ifelse(treatment == "UR", "WHL",
                                              ifelse(treatment == "RH", "GUT",
@@ -90,12 +90,33 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
                                              )
     ))
 
-    ### kibi - skal dette ikke være TBM?
-    bv <- samp[! is.na(samp$individNum) |
-                       (samp$speciesCode == "TBM" & !is.na(samp$age)), ]
+    bv_0 <- samp[!is.na(samp$individNum), ]
+
+    nrow(subset(bv_0, number != 1)) # THis should be 0 rows
+
+    # Fixing TBM
+    ## First all TBM's with a individNum and being ej-rep will be deleted for now
+    ##  The above are the ones collected for genetics and should be on there own SA record
+
+    tbm_ej_rep <- subset(samp, speciesCode == "TBM" & representative == "nej")
+    bv_01 <- subset(bv_0, !(animalId %in% tbm_ej_rep$animalId))
+
+    ## Saneel are read in group of ~3 - with the same animalId.
+    ## Each fish need their own row in BV
+    tbm <- subset(samp, samp$speciesCode == "TBM" & representative == "ja"
+                  & !is.na(samp$age))
+    sum(tbm$number_age)
+    tbm_1 <- dplyr::slice(group_by(tbm, animalId, age), rep(1:n(), each = number_age))
+
+    tbm_1$weight <- tbm_1$weight / tbm_1$number
+    tbm_1$animalId <- as.integer(row.names(tbm_1))
+
+    bv <- rbind(bv_01, tbm_1)
+    samp_tbm <- rbind(bv_01, tbm_1)
 
     # OtolithCollected
-    ##  Indication on otolith collected and potentially archived. To be used for all collected otoliths including when an age is provided
+    ##  Indication on otolith collected and potentially archived.
+    ##  To be used for all collected otoliths including when an age is provided
 
     bv$OtolithCollected <- "N"
     bv$OtolithCollected[!(is.na(bv$age)) |
@@ -192,7 +213,8 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
 
 
     bv <- merge(L1, L2, by = c("animalId", "value"), all.x = T)
-    bv <- merge(bv, unique(samp[, c("animalId", "BVpresentation")]),
+    #Below should be recoded
+    bv <- merge(bv, unique(samp_tbm[, c("animalId", "BVpresentation")]),
                                by = "animalId", all.x = T)
     # Recode for SA ----
 
