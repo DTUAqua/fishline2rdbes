@@ -1,13 +1,12 @@
 
 #' FishLine 2 RDBES, Landing event (LE)
 #'
+#' @param ref_path
+#' @param sampling_scheme
+#' @param years
+#'
 #' @description Converts samples data from national database (fishLine) to RDBES.
 #' Data model v. 1.19
-#'
-#' @param path_to_data_model_baseTypes Where to find the baseTypes for the data model
-#' @param year years needed
-#' @param cruises Name of cruises in national database
-#' @param type only_mandatory | everything
 #'
 #' @author Kirsten Birch Håkansson, DTU Aqua
 #'
@@ -22,9 +21,9 @@ SA_fishline_2_rdbes <-
            years = 2016) {
     # Input for testing ----
 
-    # ref_path <- "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/references/link_fishLine_sampling_designs_2022.csv"
-    # years <- 2022
-    # sampling_scheme <- "DNK_AtSea_Observer_Active"
+    # ref_path <- "C:/Users/kibi/OneDrive - Danmarks Tekniske Universitet/gits/create_RDBES_data/references/link_fishLine_sampling_designs_2023.csv"
+    # years <- c(2023)
+    # sampling_scheme <- "DNK_Industrial_Sampling"
     # data_model_path <-
     #   "Q:/dfad/data/Data/RDBES/sample_data/create_RDBES_data/input"
 
@@ -55,10 +54,12 @@ SA_fishline_2_rdbes <-
       channel,
       paste(
         "SELECT specieslist.*, Animal.animalId, Animal.individNum,
-                  Animal.representative, Animal.number as ani_number
+                  Animal.representative, Animal.number as ani_number, Age.age,
+                  Age.number as age_number
                   FROM FishLineDW.dbo.SpeciesList INNER JOIN
                   FishLineDW.dbo.Sample ON SpeciesList.sampleId = Sample.sampleId LEFT OUTER JOIN
-                  FishLineDW.dbo.Animal ON SpeciesList.speciesListId = Animal.speciesListId
+                  FishLineDW.dbo.Animal ON SpeciesList.speciesListId = Animal.speciesListId LEFT OUTER JOIN
+                  fishlineDW.dbo.Age ON Animal.animalId = Age.animalId
          WHERE (Specieslist.year between ",
         min(years),
         " and ",
@@ -106,6 +107,19 @@ SA_fishline_2_rdbes <-
 
     # Identify lower hierachy
 
+    # Fix lh for sandeel
+    ## Saneel are read in group of ~3 - with the same animalId.
+    ## Each fish need their own row in BV
+
+    tbm_ej_rep <- subset(sa, speciesCode == "TBM" & representative == "ja"
+                         & !is.na(age))
+
+    tbm_ej_rep$individNum <- 100000 + as.integer(row.names(tbm_ej_rep))
+    tbm_ej_rep$representative  <- "nej"
+
+    tbm_ej_rep$ani_number <- tbm_ej_rep$age_number
+
+    sa <- rbind(sa, tbm_ej_rep)
 
     lh <-
       distinct(
