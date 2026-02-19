@@ -10,8 +10,13 @@
 #'
 #' @examples
 get_data_model <- function(table_name,
+<<<<<<< Updated upstream
                            data_model_version = "v1_19_60") {
 
+=======
+                           data_model_path = "Q:/20-forskning/20-dfad/data/Data/RDBES/sample_data/create_RDBES_data/input",
+                           data_model_version = "v1_19_60") {
+>>>>>>> Stashed changes
   ## datamodel
 
   nam <- data.frame(name = c("Design", "Location", "Sampling Details", "Temporal Event",
