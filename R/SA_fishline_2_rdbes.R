@@ -262,6 +262,7 @@ SA_fishline_2_rdbes <-
     sa$SAgear[sa$gearType == "TBN"] <- "OTB"
     sa$SAgear[sa$gearType == "FIX"] <- "FPO"
     sa$SAgear[sa$gearType == "LHP"] <- "LHM"
+    sa$SAgear[sa$gearType == "PSN"] <- "PS"
     sa$SAmeshSize <- sa$meshSize
 
     sa <-
