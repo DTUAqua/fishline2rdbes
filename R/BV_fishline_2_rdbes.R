@@ -75,6 +75,16 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
         sep = ""
       )
     )
+
+    maturity_key <- sqlQuery(channel, paste("SELECT
+       [maturityIndex]
+      ,[maturityIndexMethod]
+      ,[maturitySMSF]
+  FROM [FishLine].[dbo].[Maturity]
+  " ,sep = ""))
+
+    samp <- merge(samp, maturity_key, by = c("maturityIndexMethod", "maturityIndex"), all.x = T)
+
     close(channel)
 
     #from kg to g
@@ -150,7 +160,7 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
         "sexCode",
         "length",
         "weight",
-        "maturityIndex",
+        "maturitySMSF",
         "age",
         "genetics",
         "OtolithCollected"
@@ -199,7 +209,7 @@ FROM        fishlineDW.dbo.Animal INNER JOIN
                                               "station", "speciesCode", "landingCategory",
                                               "sizeSortingEU", "individNum"),
                           measure.vars = c("sexCode", "length", "weight",
-                                           "maturityIndex", "age", "genetics",
+                                           "maturitySMSF", "age", "genetics",
                                            "OtolithCollected"),
                           value.name = "BVvalueMeasured")
     L1 <- L1[! is.na(L1$BVvalueMeasured), ]
