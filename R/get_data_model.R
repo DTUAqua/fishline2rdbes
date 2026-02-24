@@ -10,15 +10,10 @@
 #'
 #' @examples
 get_data_model <- function(table_name,
-<<<<<<< Updated upstream
-                           data_model_version = "v1_19_60") {
-
-=======
                            data_model_path = "Q:/20-forskning/20-dfad/data/Data/RDBES/sample_data/create_RDBES_data/input",
                            data_model_version = "v1_19_60") {
->>>>>>> Stashed changes
-  ## datamodel
 
+  ## datamodel
   nam <- data.frame(name = c("Design", "Location", "Sampling Details", "Temporal Event",
                              "Vessel Selection", "Fishing Trip",
                              "Fishing Operation",
@@ -32,7 +27,7 @@ get_data_model <- function(table_name,
 
     j <- match(table_name, nam$name)
 
-    data_model <- system.file("extdata", paste0("RDBES_Data_Model_CS_", data_model_version, ".xlsx"),
+    data_model <- system.file(paste0(data_model_path, "/RDBES_Data_Model_CS_", data_model_version, ".xlsx"),
                               package = "fishline2rdbes")
 
     dat = openxlsx::read.xlsx(data_model,
