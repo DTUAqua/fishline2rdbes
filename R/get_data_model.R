@@ -27,11 +27,9 @@ get_data_model <- function(table_name,
 
     j <- match(table_name, nam$name)
 
-    data_model <- system.file(paste0(data_model_path, "/RDBES_Data_Model_CS_", data_model_version, ".xlsx"),
-                              package = "fishline2rdbes")
-
-    dat = openxlsx::read.xlsx(data_model,
+    dat = openxlsx::read.xlsx(paste0(data_model_path, "/RDBES_Data_Model_CS_", data_model_version, ".xlsx"),
                     sheet = nam[j, "name"])
+
 
     dat <- dat[dat$Order %in% 1:900, c("Order", "Field.Name")]
     #dat$Field.Name <- substr(dat$Field.Name, 3, nchar(dat$Field.Name))
