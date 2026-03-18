@@ -69,11 +69,11 @@ VD_fishline_2_rdbes <-
     ftj_id <- read.csv("Q:/20-forskning/20-dfad/data/Data/Ftjreg/encryptions_RDBES.csv")
 
     if (id_type == "with_version") {
-      ftj_id$VDencryptedVesselCode <- paste0(ftj_id$encrypted_ID, "_", ftj_id$Version_ID)
+      ftj_id$VDencryptedVesselCode <- paste0(ftj_id$encryptedID, "_", ftj_id$VersionID)
     }
 
     if (id_type == "without_version") {
-      ftj_id$VDencryptedVesselCode <- paste0(ftj_id$encrypted_ID)
+      ftj_id$VDencryptedVesselCode <- paste0(ftj_id$encryptedID)
     }
 
     ftj_id$vstart <- as.Date(ftj_id$vstart, format = "%d-%m-%Y")
