@@ -202,9 +202,9 @@ VD_fishline_2_rdbes <-
       round(vd$btbrt, digits = 0) #OBS needs to look at both bt and brt
     vd$VDtonUnit <- "GT"
 
-    vd_ok <- subset(vd, !is.na(encrypted_ID))
+    vd_ok <- subset(vd, !is.na(encryptedID))
 
-    vd_not_ok <- subset(vd, is.na(encrypted_ID) | VDencryptedVesselCode == "DNK - Unknown vessel")
+    vd_not_ok <- subset(vd, is.na(encryptedID) | VDencryptedVesselCode == "DNK - Unknown vessel")
 
     vd_not_ok <-
       dplyr::right_join(
