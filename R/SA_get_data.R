@@ -13,7 +13,7 @@ SA_get_data <- function(link_data = link,
 
   library(RODBC)
 
-  link <- link
+  link <- link_data
   link <- subset(link, DEsamplingScheme %in% sampling_scheme)
 
   trips <- unique(link$tripId[!is.na(link$tripId)])
