@@ -159,7 +159,7 @@ LE_fishline_2_rdbes <-
     le$LEgear[le$gearType == "TBN"] <- "OTB"
     le$LEgear[le$gearType == "FIX"] <- "FPO"
     le$LEgear[le$gearType == "LHP"] <- "LHM"
-    sa$SAgear[sa$gearType == "PSN"] <- "PS"
+    le$LEgear[le$gearType == "PSN"] <- "PS"
     le$LEmeshSize <- le$meshSize
 
     le$LEmitigationDevice <- "NotRecorded"
