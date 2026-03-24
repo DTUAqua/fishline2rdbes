@@ -107,13 +107,14 @@ SA_fishline_2_rdbes <-
     ## Saneel are read in group of ~3 - with the same animalId.
     ## Each fish need their own row in BV
 
-    tbm_ej_rep <- subset(sa, speciesCode == "TBM" & representative == "ja"
-                         & !is.na(age))
+    tbm_ej_rep <- subset(sa, speciesCode == "TBM" & representative == "ja")
 
-    tbm_ej_rep$individNum <- 100000 + as.integer(row.names(tbm_ej_rep))
-    tbm_ej_rep$representative  <- "nej"
+    if (nrow(tbm_ej_rep) > 0){
+      tbm_ej_rep$individNum <- 100000 + as.integer(row.names(tbm_ej_rep))
+      tbm_ej_rep$representative  <- "nej"
 
-    tbm_ej_rep$ani_number <- tbm_ej_rep$age_number
+      tbm_ej_rep$ani_number <- tbm_ej_rep$age_number
+    }
 
     sa <- rbind(sa, tbm_ej_rep)
 
