@@ -82,6 +82,8 @@ FO_fishline_2_rdbes <-
     )
     close(channel)
 
+    # Hardcode area 27.3.d.28 to .2
+    area$areaICES[area$areaICES == "27.3.d.28"] <- "27.3.d.28.2"
 
 
     # Add needed stuff ----
