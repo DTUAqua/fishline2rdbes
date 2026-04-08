@@ -84,6 +84,7 @@ FO_fishline_2_rdbes <-
 
     # Hardcode area 27.3.d.28 to .2
     area$areaICES[area$areaICES == "27.3.d.28"] <- "27.3.d.28.2"
+    samp$dfuArea <- as.character(samp$dfuArea)
 
 
     # Add needed stuff ----
