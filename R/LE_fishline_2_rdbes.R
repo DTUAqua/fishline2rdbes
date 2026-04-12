@@ -80,6 +80,11 @@ LE_fishline_2_rdbes <-
     )
     close(channel)
 
+    samp$dfuArea <- as.character(samp$dfuArea) #dfuArea is considered an integer if only extracting samples from the 27.3
+
+    # Hardcode area 27.3.d.28 to .2
+    area$areaICES[area$areaICES == "27.3.d.28"] <- "27.3.d.28.2"
+
     # Get encryptedVesselCode
 
     encryptedVesselCode <- read.csv2(paste0("Q:/20-forskning/20-dfad/data/Data/RDBES/sample_data/create_RDBES_data/output/for_production/DNK_", years, "_", years, "_HVD.csv"))
@@ -103,8 +108,6 @@ LE_fishline_2_rdbes <-
     locode$arrivalLocation <- locode$harbourEU
 
     # Add needed stuff ----
-
-    samp$dfuArea <- as.character(samp$dfuArea)
 
     le <- left_join(samp, area, by = c("dfuArea" = "DFUArea"))
 

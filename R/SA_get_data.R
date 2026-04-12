@@ -58,6 +58,9 @@ SA_get_data <- function(link_data = link,
     )
   close(channel)
 
+  samp$dfuArea <- as.character(samp$dfuArea) #dfuArea is considered an integer if only extracting samples from the 27.3
+
+  # Hardcode area 27.3.d.28 to .2
   area$areaICES[area$areaICES == "27.3.d.28"] <- "27.3.d.28.2"
 
   output <- list(samp, area, art)

@@ -90,8 +90,6 @@ SA_fishline_2_rdbes <-
 
     error_no_area <- subset(samp, (is.na(dfuArea)))
 
-    samp$dfuArea <- as.character(samp$dfuArea)
-
     sa <- left_join(samp, area, by = c("dfuArea" = "DFUArea"))
     sa <- left_join(sa, art)
 
